@@ -24,7 +24,7 @@ Then start Rocket.Chat linked to this mongo instance:
 
     docker run --name rocketchat --env ROOT_URL=http://localhost --link db Rocket.Chat
 
-This will start a Ghost instance listening on the default Ghost port of 3000.
+This will start a Rocket.Chat instance listening on the default Meteor port of 3000.
 
 If you'd like to be able to access the instance from the host without the container's IP, standard port mappings can be used:
 
