@@ -1,6 +1,7 @@
 FROM node:0.10.39
 
-MAINTAINER pierre@ozoux.net
+# crafted and tuned by pierre@ozoux.net and sli@makawave.com
+MAINTAINER buildmaster@rocket.chat 
 
 RUN groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat
@@ -21,6 +22,8 @@ RUN npm install
 
 WORKDIR /app/bundle
 USER rocketchat
+
+# needs a mongoinstance - defaults to container linking with alias 'db' 
 ENV MONGO_URL=mongodb://db:27017/meteor
 ENV PORT=3000
 EXPOSE 3000
