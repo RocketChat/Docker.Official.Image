@@ -32,7 +32,7 @@ If you'd like to be able to access the instance at standard port on the host mac
 
 Then, access it via `http://localhost` or `http://host-ip` in a browser.  Replace `localhost` with your own domain name if you are hosting at your own domain.
 
-If you're using a third party Mongo provider, or working with Kubernetes, you need to override the MONGO_URL environment variable:
+If you're using a third party Mongo provider, or working with Kubernetes, you need to override the `MONGO_URL` environment variable:
 
     docker run --name rocketchat -p 80:3000 --env ROOT_URL=http://localhost --env MONGO_URL=mongodb://mymongourl/mydb -d rocket.chat
 
