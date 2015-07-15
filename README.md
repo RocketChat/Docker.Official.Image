@@ -16,7 +16,7 @@ Then start Rocket.Chat linked to this mongo instance:
 
     docker run --name rocketchat --link db -d rocket.chat
 
-This will start a Rocket.Chat instance listening on the default Meteor port of 3000 on the container.  You can then link a web server to front-end Rocket.Chat.
+This will start a Rocket.Chat instance listening on the default Meteor port of 3000 on the container.
 
 If you'd like to be able to access the instance directly at standard port on the host machine:
 
