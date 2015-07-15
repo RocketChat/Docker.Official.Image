@@ -15,17 +15,18 @@ RUN curl -fSL "https://rocket.chat/dists/$RC_VERSION/rocket.chat-$RC_VERSION.tgz
 &&  curl -fSL "https://rocket.chat/dists/$RC_VERSION/rocket.chat-$RC_VERSION.tgz.asc" -o rocket.chat.tgz.asc \
 &&  gpg --verify rocket.chat.tgz.asc \
 &&  tar zxvf ./rocket.chat.tgz \
-&&  rm ./rocket.chat.tgz
-
-WORKDIR /app/bundle/programs/server
-RUN npm install
+&&  rm ./rocket.chat.tgz \
+&&  cd /app/bundle/programs/server \
+&&  npm install
 
 WORKDIR /app/bundle
 USER rocketchat
 
 # needs a mongoinstance - defaults to container linking with alias 'db' 
-ENV MONGO_URL=mongodb://db:27017/meteor
-ENV PORT=3000
+ENV MONGO_URL=mongodb://db:27017/meteor \
+    PORT=3000 \
+    ROOT_URL=http://localhost:3000
+
 EXPOSE 3000
 CMD ["node", "main.js"]
 
