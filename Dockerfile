@@ -1,4 +1,4 @@
-FROM node:0.10.39
+FROM node:0.10
 
 # crafted and tuned by pierre@ozoux.net and sli@makawave.com
 MAINTAINER buildmaster@rocket.chat 
