@@ -16,10 +16,10 @@ RUN curl -fSL "https://rocket.chat/dists/$RC_VERSION/rocket.chat-$RC_VERSION.tgz
 &&  gpg --verify rocket.chat.tgz.asc \
 &&  tar zxvf ./rocket.chat.tgz \
 &&  rm ./rocket.chat.tgz \
-&&  cd /app/bundle/programs/server \
+&&  cd /bundle/programs/server \
 &&  npm install
 
-WORKDIR /app/bundle
+WORKDIR /bundle
 USER rocketchat
 
 # needs a mongoinstance - defaults to container linking with alias 'db' 
