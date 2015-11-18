@@ -3,6 +3,10 @@ FROM node:0.10
 # crafted and tuned by pierre@ozoux.net and sli@makawave.com
 MAINTAINER buildmaster@rocket.chat 
 
+RUN apt-get update \
+&& apt-get install -y graphicsmagick \
+&& rm -rf /var/lib/apt/lists/*
+
 RUN groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat
 
