@@ -13,10 +13,10 @@ RUN groupadd -r rocketchat \
 # gpg: key 4FD08014: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
 RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104
 
-ENV RC_VERSION v0.12.1
+ENV RC_VERSION 0.12.1
 
-RUN curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/${RC_VERSION}/rocket.chat.tgz" -o rocket.chat.tgz \
-&&  curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/${RC_VERSION}/rocket.chat.tgz.asc" -o rocket.chat.tgz.asc \
+RUN curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/v${RC_VERSION}/rocket.chat.tgz" -o rocket.chat.tgz \
+&&  curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/v${RC_VERSION}/rocket.chat.tgz.asc" -o rocket.chat.tgz.asc \
 &&  gpg --verify rocket.chat.tgz.asc \
 &&  tar zxvf ./rocket.chat.tgz \
 &&  rm ./rocket.chat.tgz \
