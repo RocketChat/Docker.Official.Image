@@ -15,8 +15,8 @@ RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EB
 
 ENV RC_VERSION v0.9.0
 
-RUN curl -fSL "https://rocket.chat/dists/$RC_VERSION/rocket.chat-$RC_VERSION.tgz" -o rocket.chat.tgz \
-&&  curl -fSL "https://rocket.chat/dists/$RC_VERSION/rocket.chat-$RC_VERSION.tgz.asc" -o rocket.chat.tgz.asc \
+RUN curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/${RC_VERSION}/rocket.chat.tgz" -o rocket.chat.tgz \
+&&  curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/${RC_VERSION}/rocket.chat.tgz.asc" -o rocket.chat.tgz.asc \
 &&  gpg --verify rocket.chat.tgz.asc \
 &&  tar zxvf ./rocket.chat.tgz \
 &&  rm ./rocket.chat.tgz \
