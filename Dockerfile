@@ -3,10 +3,6 @@ FROM node:0.10
 # crafted and tuned by pierre@ozoux.net and sli@makawave.com
 MAINTAINER buildmaster@rocket.chat 
 
-RUN apt-get update \
-&& apt-get install -y graphicsmagick \
-&& rm -rf /var/lib/apt/lists/*
-
 RUN groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat
 
@@ -15,8 +11,8 @@ RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EB
 
 ENV RC_VERSION 0.12.1
 
-RUN curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/v${RC_VERSION}/rocket.chat.tgz" -o rocket.chat.tgz \
-&&  curl -fSL "https://github.com/RocketChat/Rocket.Chat/releases/download/v${RC_VERSION}/rocket.chat.tgz.asc" -o rocket.chat.tgz.asc \
+RUN curl -fSL "https://rocket.chat/releases/${RC_VERSION}/download" -o rocket.chat.tgz \
+&&  curl -fSL "https://rocket.chat/releases/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
 &&  gpg --verify rocket.chat.tgz.asc \
 &&  tar zxvf ./rocket.chat.tgz \
 &&  rm ./rocket.chat.tgz \
