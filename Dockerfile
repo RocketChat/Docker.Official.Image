@@ -5,15 +5,13 @@ MAINTAINER buildmaster@rocket.chat
 
 RUN groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat
-&&  mkdir /app  \
-&&  mkdir /app/uploads
 
 VOLUME /app/uploads
 
 # gpg: key 4FD08014: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
 RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104
 
-ENV RC_VERSION 0.12.1
+ENV RC_VERSION 0.13.0
 
 WORKDIR /app
 
@@ -32,7 +30,7 @@ WORKDIR /app/bundle
 # needs a mongoinstance - defaults to container linking with alias 'db'
 ENV MONGO_URL=mongodb://db:27017/meteor \
     PORT=3000 \
-    ROOT_URL=http://localhost:3000
+    ROOT_URL=http://localhost:3000 \
     Accounts_AvatarStorePath=/app/uploads
 
 EXPOSE 3000
