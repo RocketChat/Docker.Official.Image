@@ -10,7 +10,7 @@ It is a great solution for communities and companies wanting to privately host t
 
 First, start an instance of mongo:
 
-    docker run --name db -d mongo mongod --smallfiles
+    docker run --name db -d mongo:3.0 mongod --smallfiles
 
 Then start Rocket.Chat linked to this mongo instance:
 
