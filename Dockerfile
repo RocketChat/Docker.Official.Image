@@ -3,8 +3,8 @@ FROM node:4-slim
 # crafted and tuned by pierre@ozoux.net and sing.li@rocket.chat
 MAINTAINER buildmaster@rocket.chat
 
-RUN groupadd -r rocketchat \
-&&  useradd -r -g rocketchat rocketchat
+RUN groupadd -g 99999 -r rocketchat \
+&&  useradd -u 99999 -r -g rocketchat rocketchat
 
 VOLUME /app/uploads
 
