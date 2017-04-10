@@ -14,4 +14,6 @@ current="$(
 )"
 
 set -x
-sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$current"'/;' ./Dockerfile
+if [[ ! $current =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+ ]]; then
+        sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$current"'/;' ./Dockerfile
+fi
