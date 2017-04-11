@@ -10,10 +10,9 @@ current="$(
 			}
 		' \
 		| sort -uV \
+		| grep -v -- -rc \
 		| tail -1
 )"
 
 set -x
-if [[ ! $current =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+ ]]; then
-        sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$current"'/;' ./Dockerfile
-fi
+sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$current"'/;' ./Dockerfile
