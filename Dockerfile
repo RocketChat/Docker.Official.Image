@@ -17,8 +17,8 @@ ENV RC_VERSION 0.58.4
 
 WORKDIR /app
 
-RUN curl -fSL "https://rocket.chat/releases/${RC_VERSION}/download" -o rocket.chat.tgz \
-&&  curl -fSL "https://rocket.chat/releases/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
+RUN curl -fSL "https://download.rocket.chat/build/rocket.chat-${RC_VERSION}.tgz" -o rocket.chat.tgz \
+&&  curl -fSL "https://download.rocket.chat/build/rocket.chat-${RC_VERSION}.tgz.asc" -o rocket.chat.tgz.asc \
 &&  gpg --batch --verify rocket.chat.tgz.asc rocket.chat.tgz \
 &&  tar zxvf rocket.chat.tgz \
 &&  rm rocket.chat.tgz rocket.chat.tgz.asc \
