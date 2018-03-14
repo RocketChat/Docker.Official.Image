@@ -1,4 +1,4 @@
-FROM node:8-slim
+FROM node:8.9-slim
 
 # crafted and tuned by pierre@ozoux.net and sing.li@rocket.chat
 MAINTAINER buildmaster@rocket.chat
