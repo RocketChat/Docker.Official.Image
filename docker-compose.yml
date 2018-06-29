@@ -4,8 +4,7 @@ services:
     image: mongo:3.2
     entrypoint: mongod --smallfiles
   rocketchat:
-    build:
-      context: .
+    image: rocket.chat:latest
     environment:
       ROOT_URL: 'http://localhost'
     ports:
