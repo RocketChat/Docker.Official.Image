@@ -36,7 +36,9 @@ ENV RC_VERSION 1.1.1
 
 WORKDIR /app
 
-RUN curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
+RUN BUILDDEPS="python make git g++" \
+&&  apt-get update &&  apt-get install -y --no-install-recommends ${BUILDDEPS} \
+&&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
 &&  gpg --batch --verify rocket.chat.tgz.asc rocket.chat.tgz \
 &&  tar zxvf rocket.chat.tgz \
@@ -44,7 +46,8 @@ RUN curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.ch
 &&  cd bundle/programs/server \
 &&  npm install \
 &&  npm cache clear --force \
-&&  chown -R rocketchat:rocketchat /app
+&&  chown -R rocketchat:rocketchat /app \
+&&  apt-get purge -y --auto-remove $BUILDDEPS
 
 USER rocketchat
 
