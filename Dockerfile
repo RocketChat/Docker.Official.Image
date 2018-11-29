@@ -47,6 +47,10 @@ RUN set -x; BUILDDEPS="python make git g++" \
 &&  npm install \
 &&  npm cache clear --force \
 &&  chown -R rocketchat:rocketchat /app \
+&&  cd /app/bundle/programs/server/npm \
+&&  npm uninstall sharp && npm install sharp \
+&&  cd /app/bundle/programs/server/npm \
+&&  npm uninstall grpc && npm install grpc \
 &&  apt-get purge -y --auto-remove $BUILDDEPS
 
 USER rocketchat
