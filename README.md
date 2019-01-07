@@ -22,7 +22,7 @@ Stop the containers with:
 ### Individual containers
 First, start an instance of mongo:
 
-    docker run --name db -d mongo:3.2 mongod --smallfiles
+    docker run --name db -d mongo:4.0 mongod --smallfiles
 
 Then start Rocket.Chat linked to this mongo instance:
 
