@@ -60,7 +60,9 @@ RUN curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.ch
 &&  tar zxvf rocket.chat.tgz \
 &&  rm rocket.chat.tgz rocket.chat.tgz.asc \
 &&  cd bundle/programs/server \
-&&  npm install
+&&  npm install \
+&&  npm cache clear --force \
+&&  chown -R rocketchat:rocketchat /app
 
 USER rocketchat
 
