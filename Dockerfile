@@ -20,7 +20,7 @@ RUN set -eux; \
 ## End Hack
 
 ## Actual Rocket.Chat stuff
-MAINTAINER buildmaster@rocket.chat
+LABEL maintainer="buildmaster@rocket.chat"
 
 RUN groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat \
