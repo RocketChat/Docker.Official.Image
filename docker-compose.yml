@@ -3,6 +3,8 @@ services:
   db:
     image: mongo:3.2
     entrypoint: mongod --smallfiles
+    volumes:
+      - ./data:/data/db
   rocketchat:
     image: rocket.chat:latest
     environment:
