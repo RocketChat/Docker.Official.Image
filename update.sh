@@ -10,7 +10,7 @@ current="$(
 			}
 		' \
 		| sort -uV \
-		| grep -vE -- '-(rc|beta)' \
+		| grep -vE -- '-(rc|alpha|beta)' \
 		| tail -1
 )"
 
