@@ -4,7 +4,7 @@ services:
     image: mongo:3.2
     volumes:
       - ./data/db:/data/db
-    command: mongod --smallfiles --oplogSize 128 --replSet rs0
+    command: mongod --smallfiles --oplogSize 128 --replSet rs01
 
   mongo-init-replica:
     image: mongo:3.2
@@ -17,8 +17,8 @@ services:
     restart: unless-stopped
     environment:
       - ROOT_URL=http://localhost
-      - MONGO_URL=mongodb://mongo:27017/rocketchat
-      - MONGO_OPLOG_URL=mongodb://mongo:27017/local
+      - MONGO_URL=mongodb://mongo:27017/rocketchat?replicaSet=rs01
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local?replicaSet=rs01
     depends_on:
       - mongo
     ports:
