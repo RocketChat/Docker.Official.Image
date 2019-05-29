@@ -1,13 +1,25 @@
 version: '3.6'
 services:
-  db:
+  mongo:
     image: mongo:3.2
-    entrypoint: mongod --smallfiles
     volumes:
-      - ./data:/data/db
+      - ./data/db:/data/db
+    command: mongod --smallfiles --oplogSize 128 --replSet rs01
+
+  mongo-init-replica:
+    image: mongo:3.2
+    command: 'mongo mongo/rocketchat --eval "rs.initiate({ _id: ''rs0'', members: [ { _id: 0, host: ''localhost:27017'' } ]})"'
+    depends_on:
+      - mongo
+
   rocketchat:
     image: rocket.chat:latest
+    restart: unless-stopped
     environment:
-      ROOT_URL: 'http://localhost'
+      - ROOT_URL=http://localhost
+      - MONGO_URL=mongodb://mongo:27017/rocketchat?replicaSet=rs01
+      - MONGO_OPLOG_URL=mongodb://mongo:27017/local?replicaSet=rs01
+    depends_on:
+      - mongo
     ports:
       - "80:3000"
