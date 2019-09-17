@@ -22,8 +22,8 @@ RUN set -eux; \
 ## Actual Rocket.Chat stuff
 LABEL maintainer="buildmaster@rocket.chat"
 
-RUN groupadd -r rocketchat \
-&&  useradd -r -g rocketchat rocketchat \
+RUN groupadd -g 65533-r rocketchat \
+&&  useradd -u 65533 -r -g rocketchat rocketchat \
 &&  mkdir -p /app/uploads \
 &&  chown rocketchat.rocketchat /app/uploads
 
