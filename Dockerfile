@@ -4,7 +4,7 @@ FROM debian:jessie-slim
 
 ## Installing Node.js
 RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys DD8F2338BAE7501E3DD5AC78C273792F7D83545D
-ENV NODE_VERSION 8.11.4
+ENV NODE_VERSION 8.15.1
 ENV NODE_ENV production
 RUN set -eux; \
 	apt-get update; \
