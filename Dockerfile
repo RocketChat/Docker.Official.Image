@@ -8,7 +8,7 @@ ENV NODE_VERSION 8.15.1
 ENV NODE_ENV production
 RUN set -eux; \
 	apt-get update; \
-	apt-get install -y --no-install-recommends ca-certificates curl; \
+	apt-get install -y --no-install-recommends ca-certificates curl fontconfig; \
 	rm -rf /var/lib/apt/lists/*; \
 	curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.gz"; \
 	curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc"; \
