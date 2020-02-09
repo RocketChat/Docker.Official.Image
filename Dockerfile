@@ -1,23 +1,4 @@
-## Start Hack
-FROM debian:jessie-slim
-## All of this needed because of missing 8.11.x tag.  Once we update to 8.15+ we can resume using Dockerfile.old or remove hack and use FROM node:8-slim
-
-## Installing Node.js
-RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys DD8F2338BAE7501E3DD5AC78C273792F7D83545D
-ENV NODE_VERSION 8.15.1
-ENV NODE_ENV production
-RUN set -eux; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends ca-certificates curl fontconfig; \
-	rm -rf /var/lib/apt/lists/*; \
-	curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.gz"; \
-	curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc"; \
-	gpg --batch --decrypt --output SHASUMS256.txt SHASUMS256.txt.asc; \
-	grep " node-v$NODE_VERSION-linux-x64.tar.gz\$" SHASUMS256.txt | sha256sum -c -; \
-	tar -xf "node-v$NODE_VERSION-linux-x64.tar.gz" -C /usr/local --strip-components=1 --no-same-owner; \
-	rm "node-v$NODE_VERSION-linux-x64.tar.gz" SHASUMS256.txt.asc SHASUMS256.txt; \
-	npm cache clear --force
-## End Hack
+FROM node:8.17-slim
 
 ## Actual Rocket.Chat stuff
 LABEL maintainer="buildmaster@rocket.chat"
@@ -29,10 +10,12 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
+# fix for IPv6 build environments https://rvm.io/rvm/security#ipv6-issues
+RUN echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf
 # gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
 RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104
 
-ENV RC_VERSION 2.4.7
+ENV RC_VERSION 2.4.8
 
 WORKDIR /app
 
