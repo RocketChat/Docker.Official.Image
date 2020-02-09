@@ -3,10 +3,20 @@ FROM node:8.17-slim
 ## Actual Rocket.Chat stuff
 LABEL maintainer="buildmaster@rocket.chat"
 
-RUN groupadd -r rocketchat \
+RUN set -x \
+&&  groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat \
 &&  mkdir -p /app/uploads \
-&&  chown rocketchat:rocketchat /app/uploads
+&&  chown rocketchat:rocketchat /app/uploads \
+&& apt-get update \
+&& apt-get install -y -o Dpkg::Options::="--force-confdef" --no-install-recommends \
+   imagemagick \
+   fontconfig \
+   ca-certificates \
+   curl \
+   gpg \
+   dirmngr \
+&& apt-get clean all
 
 VOLUME /app/uploads
 
