@@ -13,7 +13,7 @@ VOLUME /app/uploads
 # gpg: key 4FD08014: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
 RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104
 
-ENV RC_VERSION 3.0.0-rc.1
+ENV RC_VERSION 3.0.0-rc.7
 
 WORKDIR /app
 
