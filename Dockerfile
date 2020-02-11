@@ -20,7 +20,11 @@ RUN set -eux; \
 ## End Hack
 
 ## Actual Rocket.Chat stuff
-LABEL maintainer="buildmaster@rocket.chat"
+LABEL \
+  org.opencontainers.image.title="Official Rocket.Chat docker deployment image" \
+  org.opencontainers.image.description="The Complete Open Source Chat Solution" \
+  org.opencontainers.image.authors="Rocket.Chat Buildmaster <buildmaster@rocket.chat>" \
+  org.opencontainers.image.source="https://github.com/RocketChat/Docker.Official.Image"
 
 RUN groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat \
