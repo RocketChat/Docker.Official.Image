@@ -1,4 +1,4 @@
-FROM node:14.12-slim
+FROM node:12.14-slim
 
 ## Actual Rocket.Chat stuff
 LABEL maintainer="buildmaster@rocket.chat"
