@@ -4,7 +4,7 @@ FROM debian:jessie-slim
 
 ## Installing Node.js
 RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys DD8F2338BAE7501E3DD5AC78C273792F7D83545D
-ENV NODE_VERSION 8.15.1
+ENV NODE_VERSION 8.17.0
 ENV NODE_ENV production
 RUN set -eux; \
 	apt-get update; \
@@ -32,7 +32,7 @@ VOLUME /app/uploads
 # gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
 RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104
 
-ENV RC_VERSION 2.4.9
+ENV RC_VERSION 2.4.11
 
 WORKDIR /app
 
