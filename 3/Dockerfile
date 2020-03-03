@@ -34,7 +34,8 @@ RUN ARCH="x64" \
     && grep " node-v$NODE_VERSION-linux-$ARCH.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
     && tar -xJf "node-v$NODE_VERSION-linux-$ARCH.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
     && rm "node-v$NODE_VERSION-linux-$ARCH.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt \
-    && npm cache clear --force
+    && npm cache clear --force \
+    && apt-get clean all
 
 ## Actual Rocket.Chat stuff
 LABEL maintainer="buildmaster@rocket.chat"
