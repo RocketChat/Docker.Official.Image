@@ -59,8 +59,9 @@ ENV RC_VERSION 3.0.3
 
 WORKDIR /app
 
-RUN aptMark="$(apt-mark showmanual)" \
-&&  apt-get update \
+RUN apt-get update \
+&&  apt-get install -y --no-install-recommends fontconfig \
+&&  aptMark="$(apt-mark showmanual)" \
 &&  apt-get install -y --no-install-recommends g++ make python ca-certificates curl \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
