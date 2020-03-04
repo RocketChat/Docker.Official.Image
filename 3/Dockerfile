@@ -42,9 +42,6 @@ RUN ARCH="x64" \
       | xargs -r apt-mark manual \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
-## Actual Rocket.Chat stuff
-LABEL maintainer="buildmaster@rocket.chat"
-
 RUN groupadd -r rocketchat \
 &&  useradd -r -g rocketchat rocketchat \
 &&  mkdir -p /app/uploads \
