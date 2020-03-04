@@ -6,10 +6,8 @@ ENV NODE_VERSION 12.14.0
 
 # Node installation based on https://github.com/nodejs/docker-node/blob/e76dc47a4104a1b06765673dadb56f1855c32cad/12/stretch-slim/Dockerfile
 RUN ARCH="x64" \
-    && rcDependencies="fontconfig python g++ build-essential" \
     && set -eux \
-    && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl wget gnupg dirmngr xz-utils libatomic1 \
-       $rcDependencies \
+    && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl wget gnupg dirmngr xz-utils \
     && rm -rf /var/lib/apt/lists/* \
     && for key in \
       94AE36675C464D64BAFA68DD7434390BDBE9B9C5 \
@@ -34,8 +32,15 @@ RUN ARCH="x64" \
     && grep " node-v$NODE_VERSION-linux-$ARCH.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
     && tar -xJf "node-v$NODE_VERSION-linux-$ARCH.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
     && rm "node-v$NODE_VERSION-linux-$ARCH.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt \
-    && npm cache clear --force \
-    && apt-get clean all
+    && apt-mark auto '.*' > /dev/null \
+    && find /usr/local -type f -executable -exec ldd '{}' ';' \
+      | awk '/=>/ { print $(NF-1) }' \
+      | sort -u \
+      | xargs -r dpkg-query --search \
+      | cut -d: -f1 \
+      | sort -u \
+      | xargs -r apt-mark manual \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
 ## Actual Rocket.Chat stuff
 LABEL maintainer="buildmaster@rocket.chat"
@@ -54,13 +59,26 @@ ENV RC_VERSION 3.0.3
 
 WORKDIR /app
 
-RUN curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
+RUN aptMark="$(apt-mark showmanual)" \
+&&  apt-get update \
+&&  apt-get install -y --no-install-recommends g++ make python ca-certificates curl \
+&&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
 &&  gpg --batch --verify rocket.chat.tgz.asc rocket.chat.tgz \
 &&  tar zxf rocket.chat.tgz \
 &&  rm rocket.chat.tgz rocket.chat.tgz.asc \
 &&  cd bundle/programs/server \
 &&  npm install \
+&&  apt-mark auto '.*' > /dev/null \
+&&  apt-mark manual $aptMark > /dev/null \
+&&  find /usr/local -type f -executable -exec ldd '{}' ';' \
+    | awk '/=>/ { print $(NF-1) }' \
+    | sort -u \
+    | xargs -r dpkg-query --search \
+    | cut -d: -f1 \
+    | sort -u \
+    | xargs -r apt-mark manual \
+&&  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
 &&  npm cache clear --force \
 &&  chown -R rocketchat:rocketchat /app
 
