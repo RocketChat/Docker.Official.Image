@@ -1,18 +1,30 @@
 #!/bin/bash
-set -eo pipefail
 
-current="$(
-	git ls-remote --tags https://github.com/RocketChat/Rocket.Chat.git \
-		| awk -F 'refs/tags/' '
-			$2 ~ /^v?[0-9]/ {
-				gsub(/^v|\^.*/, "", $2);
-				print $2;
-			}
-		' \
-		| sort -uV \
-		| grep -vE -- '-(rc|alpha|beta)' \
-		| tail -1
-)"
+set -ue
+. functions.sh
 
-set -x
-sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$current"'/;' ./Dockerfile
+cd "$(cd "${0%/*}" && pwd -P)"
+
+IFS=' ' read -ra versions <<< "$(get_versions .)"
+
+url='https://github.com/RocketChat/Rocket.Chat.git'
+
+get_latest() {
+  git ls-remote --tags $url \
+      | awk -F 'refs/tags/' '
+        $2 ~ /^v?[0-9]/ {
+          gsub(/^v|\^.*/, "", $2);
+          print $2;
+        }
+      ' \
+      | sort -uV \
+      | grep -vE -- '-(rc|alpha|beta)' \
+      | grep "^${1}" \
+      | tail -1
+}
+
+for version in "${versions[@]}"; do
+  if [ -f "${version}/Dockerfile" ]; then
+    sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$(get_latest "${version}")"'/;' "${version}/Dockerfile"
+  fi
+done;
