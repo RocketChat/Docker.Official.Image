@@ -2,7 +2,7 @@ FROM debian:jessie-slim
 
 ## Installing Node.js
 ENV NODE_ENV production
-ENV NODE_VERSION 12.14.0
+ENV NODE_VERSION 12.16.1
 
 # Node installation based on https://github.com/nodejs/docker-node/blob/e76dc47a4104a1b06765673dadb56f1855c32cad/12/stretch-slim/Dockerfile
 RUN ARCH="x64" \
@@ -52,7 +52,7 @@ VOLUME /app/uploads
 # gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
 RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104
 
-ENV RC_VERSION 3.0.12
+ENV RC_VERSION 3.2.1
 
 WORKDIR /app
 
