@@ -1,4 +1,4 @@
-FROM debian:jessie-slim
+FROM debian:buster-slim
 
 ## Installing Node.js
 ENV NODE_ENV production
@@ -49,17 +49,17 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
-# gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
-RUN gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104
-
 ENV RC_VERSION 2.4.12
 
 WORKDIR /app
 
-RUN apt-get update \
+RUN set -eux \
+&&  apt-get update \
 &&  apt-get install -y --no-install-recommends fontconfig \
 &&  aptMark="$(apt-mark showmanual)" \
-&&  apt-get install -y --no-install-recommends ca-certificates curl \
+&&  apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+# gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
+&&  gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
 &&  gpg --batch --verify rocket.chat.tgz.asc rocket.chat.tgz \
