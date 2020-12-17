@@ -1,32 +1,61 @@
 #!/bin/bash
-set -e
-. functions.sh
+set -eu
 
-# Used dynamically: print "$array_" $1
-array_2='2'
-array_3='3 latest'
+declare -A aliases=(
+  [2.4]='2'
+  [3.9]='3 latest'
+)
 
 cd "$(cd "${0%/*}" && pwd -P)"
-self="$(basename "${BASH_SOURCE[0]}")"
 
-url='https://github.com/RocketChat/Docker.Official.Image'
+sort_versions() {
+  local versions=("$@")
+  local sorted
+  local lines
+  local line
+
+  IFS=$'\n'
+  lines="${versions[*]}"
+  unset IFS
+
+  while IFS='' read -r line; do
+    sorted+=("${line}")
+  done <<< "$(echo "${lines}" | grep "^[0-9]" | sort -r)"
+
+  while IFS='' read -r line; do
+    sorted+=("${line}")
+  done <<< "$(echo "${lines}" | grep -v "^[0-9]" | sort -r)"
+
+  echo "${sorted[@]}"
+}
+
+versions=( */ )
+IFS=' ' read -ra versions <<< "$(sort_versions "${versions[@]%/}")"
 
 # get the most recent commit which modified any of "$@"
 fileCommit() {
   git log -1 --format='format:%H' HEAD -- "$@"
 }
 
-IFS=' ' read -ra versions <<< "$(get_versions)"
-IFS=' ' read -ra versions <<< "$(sort_versions "${versions[@]}")"
-
-get_stub() {
-  local version="${1}"
-  shift
-  # IFS='/' read -ra versionparts <<< "${version}"
-  local stub
-  eval stub="$(echo "${version}" | awk -F. '{ print "$array_" $1 }')"
-  echo "${stub}"
+# get the most recent commit which modified "$1/Dockerfile" or any file COPY'd from "$1/Dockerfile"
+dirCommit() {
+  local dir="$1"; shift
+  (
+    cd "$dir"
+    fileCommit \
+      Dockerfile \
+      $(git show HEAD:./Dockerfile | awk '
+        toupper($1) == "COPY" {
+          for (i = 2; i < NF; i++) {
+            print $i
+          }
+        }
+      ')
+  )
 }
+
+self="$(basename "${BASH_SOURCE[0]}")"
+url='https://github.com/RocketChat/Docker.Official.Image'
 
 echo "# this file is generated via ${url}/blob/$(fileCommit "${self}")/${self}"
 echo
@@ -36,10 +65,8 @@ echo
 
 # prints "$2$1$3$1...$N"
 join() {
-  local sep="$1"
-  shift
-  local out
-  printf -v out "${sep//%/%%}%s" "$@"
+  local sep="$1"; shift
+  local out; printf -v out "${sep//%/%%}%s" "$@"
   echo "${out#$sep}"
 }
 
@@ -47,13 +74,16 @@ for version in "${versions[@]}"; do
   # Skip "docs" and other non-docker directories
   [ -f "${version}/Dockerfile" ] || continue
 
-  stub=$(get_stub "${version}")
+  commit="$(dirCommit "$version")"
 
-  commit="$(fileCommit "${version}")"
-  fullVersion="$(get_tag "${version}" full)"
-  majorMinorVersion="$(get_tag "${version}" majorminor)"
+  fullVersion="$(git show "$commit":"$version/Dockerfile" | awk '$1 == "ENV" && $2 == "RC_VERSION" { gsub(/~/, "-", $3); print $3; exit }')"
 
-  IFS=' ' read -ra versionAliases <<< "$fullVersion $majorMinorVersion $stub"
+  versionAliases=( $fullVersion )
+
+  versionAliases+=(
+    $version
+    ${aliases[$version]:-}
+  )
 
   echo "Tags: $(join ', ' "${versionAliases[@]}")"
   echo "GitCommit: ${commit}"
