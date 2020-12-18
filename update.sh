@@ -1,11 +1,10 @@
 #!/bin/bash
 
 set -ue
-. functions.sh
 
 cd "$(cd "${0%/*}" && pwd -P)"
 
-IFS=' ' read -ra versions <<< "$(get_versions .)"
+versions=( */ )
 
 url='https://github.com/RocketChat/Rocket.Chat.git'
 
@@ -23,7 +22,7 @@ get_latest() {
       | tail -1
 }
 
-for version in "${versions[@]}"; do
+for version in "${versions[@]%/}"; do
   if [ -f "${version}/Dockerfile" ]; then
     sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$(get_latest "${version}")"'/;' "${version}/Dockerfile"
   fi
