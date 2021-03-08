@@ -58,6 +58,7 @@ RUN set -eux \
 &&  apt-get install -y --no-install-recommends fontconfig \
 &&  aptMark="$(apt-mark showmanual)" \
 &&  apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+&& rm -rf /var/lib/apt/lists/* \
 # gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
 &&  gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
