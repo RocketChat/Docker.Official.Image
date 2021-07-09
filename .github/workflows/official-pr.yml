@@ -47,6 +47,7 @@ jobs:
           title: "Rocket.Chat: ${{ github.event.pull_request.title }}"
           body: |
             Pull Request: ${{ github.event.pull_request.html_url }}
+            @sampaiodiego
 
       - name: PR details
         run: |
