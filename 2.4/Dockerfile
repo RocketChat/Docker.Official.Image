@@ -4,7 +4,7 @@ FROM debian:buster-slim
 ENV NODE_ENV production
 ENV NODE_VERSION 8.17.0
 
-# Node installation based on https://github.com/nodejs/docker-node/blob/e76dc47a4104a1b06765673dadb56f1855c32cad/12/stretch-slim/Dockerfile
+# Node installation based on https://github.com/nodejs/docker-node/blob/66b46292a6e5dd5856b1d5204dc51547c80eb17a/12/stretch-slim/Dockerfile
 RUN ARCH="x64" \
     && set -eux \
     && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl wget gnupg dirmngr xz-utils \
@@ -22,9 +22,8 @@ RUN ARCH="x64" \
       A48C2BEE680E841632CD4E44F07496B3EB3C1762 \
       B9E2F5981AA6E0CD28160D9FF13993A75599653C \
     ; do \
-      gpg --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://keys.openpgp.org --recv-keys "$key" || \
-      gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
+      gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" || \
+      gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" ; \
     done \
     && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH.tar.xz" \
     && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
@@ -60,7 +59,7 @@ RUN set -eux \
 &&  apt-get install -y --no-install-recommends ca-certificates curl gnupg \
 && rm -rf /var/lib/apt/lists/* \
 # gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
-&&  gpg --batch --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
+&&  gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/download" -o rocket.chat.tgz \
 &&  curl -fSL "https://releases.rocket.chat/${RC_VERSION}/asc" -o rocket.chat.tgz.asc \
 &&  gpg --batch --verify rocket.chat.tgz.asc rocket.chat.tgz \
