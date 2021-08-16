@@ -8,7 +8,7 @@ services:
 
   mongo-init-replica:
     image: mongo:4.0
-    command: 'mongo mongo/rocketchat --eval "rs.initiate({ _id: ''rs01'', members: [ { _id: 0, host: ''localhost:27017'' } ]})"'
+    command: 'mongo mongo/rocketchat --eval "rs.initiate({ _id: ''rs01'', members: [ { _id: 0, host: ''mongo:27017'' } ]})"'
     depends_on:
       - mongo
 
