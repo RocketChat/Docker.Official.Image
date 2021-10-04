@@ -2,8 +2,8 @@
 set -eu
 
 declare -A aliases=(
-  [2.4]='2'
-  [3.18]='3 latest'
+  [3.18]='3'
+  [4.0]='4 latest'
 )
 
 cd "$(cd "${0%/*}" && pwd -P)"
