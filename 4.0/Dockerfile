@@ -86,7 +86,7 @@ WORKDIR /app/bundle
 
 # needs a mongoinstance - defaults to container linking with alias 'db'
 ENV DEPLOY_METHOD=docker-official \
-    MONGO_URL=mongodb://db:27017/meteor \
+    MONGO_URL=mongodb://mongodb:27017/meteor \
     HOME=/tmp \
     PORT=3000 \
     ROOT_URL=http://localhost:3000 \
