@@ -1,3 +1,6 @@
+# compose v2 compatible
+# certain features are missing for supporting v2
+
 version: '3.7'
 
 volumes:
@@ -38,3 +41,4 @@ services:
       MONGODB_USERNAME: ${MONGODB_USERNAME}
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
       MONGODB_DATABASE: ${MONGODB_DATABASE:-rocketchat}
+      MONGODB_REPLICA_SET_KEY: ${MONGODB_REPLICA_SET_KEY}
