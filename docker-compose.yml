@@ -1,25 +1,40 @@
-version: '3.6'
+version: '3.7'
+
+volumes:
+  mongodb_data: { driver: local }
+
 services:
-  mongo:
-    image: mongo:4.0
-    volumes:
-      - ./data/db:/data/db
-    command: mongod --smallfiles --oplogSize 128 --replSet rs01
-
-  mongo-init-replica:
-    image: mongo:4.0
-    command: 'mongo mongo/rocketchat --eval "rs.initiate({ _id: ''rs01'', members: [ { _id: 0, host: ''localhost:27017'' } ]})"'
-    depends_on:
-      - mongo
-
   rocketchat:
-    image: rocket.chat:latest
-    restart: unless-stopped
+    image: registry.rocket.chat/rocketchat/rocket.chat:${RELEASE:-latest}
+    restart: on-failure
     environment:
-      - ROOT_URL=http://localhost
-      - MONGO_URL=mongodb://mongo:27017/rocketchat?replicaSet=rs01
-      - MONGO_OPLOG_URL=mongodb://mongo:27017/local?replicaSet=rs01
-    depends_on:
-      - mongo
+      MONGO_URL: ${MONGO_URL:-mongodb://${MONGODB_ADVERTISED_HOSTNAME}:${MONGODB_INITIAL_PRIMARY_PORT_NUMBER}/${MONGODB_DATABASE}?replicaSet=${MONGODB_REPLICA_SET_NAME}}
+      MONGO_OPLOG_URL: ${MONGO_OPLOG_URL:-mongodb://${MONGODB_ADVERTISED_HOSTNAME}:${MONGODB_INITIAL_PRIMARY_PORT_NUMBER}/local?replicaSet=${MONGODB_REPLICA_SET_NAME}}
+      ROOT_URL: ${ROOT_URL:-http://localhost:${PORT:-3000}}
+      PORT: ${PORT:-3000}
+    depends_on: [mongodb]
     ports:
-      - "80:3000"
+      - target: ${PORT:-3000}
+        published: ${HOST_PORT:-3000}
+        protocol: tcp
+        mode: host
+
+  mongodb:
+    image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-4.4}
+    restart: on-failure
+    volumes:
+      - mongodb_data:/bitnami/mongodb
+    environment:
+      MONGODB_REPLICA_SET_MODE: ${MONGODB_REPLICA_SET_MODE:-primary}
+      MONGODB_REPLICA_SET_NAME: ${MONGODB_REPLICA_SET_NAME:-rs0}
+      MONGODB_PORT_NUMBER: ${MONGODB_PORT_NUMBER:-27017}
+      MONGODB_INITIAL_PRIMARY_HOST: ${MONGODB_INITIAL_PRIMARY_HOST:-mongodb}
+      MONGODB_INITIAL_PRIMARY_PORT_NUMBER: ${MONGODB_INITIAL_PRIMARY_PORT_NUMBER:-27017}
+      MONGODB_ADVERTISED_HOSTNAME: ${MONGODB_ADVERTISED_HOSTNAME:-mongodb}
+      MONGODB_ENABLE_JOURNAL: ${MONGODB_ENABLE_JOURNAL:-true}
+      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD:-yes}
+      MONGODB_ROOT_USER: ${MONGODB_ROOT_USER}
+      MONGODB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-rocketchat}
