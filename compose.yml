@@ -9,7 +9,7 @@ services:
     restart: on-failure
     labels:
       traefik.enable: 'true'
-      traefik.routers.rocketchat.rule: Host(`${DOMAIN}`)
+      traefik.http.routers.rocketchat.rule: Host(`${DOMAIN}`)
       traefik.http.routers.rocketchat.tls: 'true'
       traefik.http.routers.rocketchat.entrypoints: https
       traefik.http.routers.rocketchat.tls.certresolver: le
