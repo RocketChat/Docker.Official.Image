@@ -29,11 +29,7 @@ services:
     expose:
       - ${PORT:-3000}
     ports:
-      - host_ip: ${BIND_IP:-0.0.0.0}
-        target: ${PORT:-3000}
-        published: ${HOST_PORT:-3000}
-        protocol: tcp
-        mode: host
+      - "${BIND_IP:-0.0.0.0}:${HOST_PORT:-3000}:${PORT:-3000}"
 
   mongodb:
     image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-4.4}
