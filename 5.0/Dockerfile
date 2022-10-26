@@ -1,11 +1,16 @@
-FROM debian:buster-slim
+FROM debian:bullseye
 
 ## Installing Node.js
 ENV NODE_ENV production
 ENV NODE_VERSION 14.19.3
 
 # Node installation based on https://github.com/nodejs/docker-node/blob/66b46292a6e5dd5856b1d5204dc51547c80eb17a/12/buster-slim/Dockerfile
-RUN ARCH="x64" \
+RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+  && case "${dpkgArch##*-}" in \
+  amd64) ARCH='x64';; \
+  arm64) ARCH='arm64';; \
+  *) echo "unsupported architecture"; exit 1 ;; \
+  esac \
   && set -eux \
   && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl wget gnupg dirmngr xz-utils \
   && rm -rf /var/lib/apt/lists/* \
@@ -52,7 +57,13 @@ ENV RC_VERSION 5.0.7
 
 WORKDIR /app
 
-RUN set -eux \
+RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+  && case "${dpkgArch##*-}" in \
+  amd64) ARCH='x64';; \
+  arm64) ARCH='arm64';; \
+  *) echo "unsupported architecture"; exit 1 ;; \
+  esac \
+  && set -eux \
   && apt-get update \
   && apt-get install -y --no-install-recommends fontconfig \
   && aptMark="$(apt-mark showmanual)" \
@@ -66,7 +77,15 @@ RUN set -eux \
   && tar zxf rocket.chat.tgz \
   && rm rocket.chat.tgz rocket.chat.tgz.asc \
   && cd bundle/programs/server \
-  && npm install \
+  && npm install --arch=${ARCH} --force \
+  && cd npm/node_modules/sharp \
+  && npm set unsafe-perm true \
+  && npm install --arch=${ARCH} --force \
+  && cd /app/bundle/programs/server/npm/node_modules/bcrypt \
+  && npm install --arch=${ARCH} --force --build-from-source \
+  && cd /app/bundle/programs/server/npm/node_modules/meteor/accounts-password/node_modules/bcrypt \
+  && npm install --arch=${ARCH} --force --build-from-source \
+  && cd /app/bundle/programs/server \
   && apt-mark auto '.*' > /dev/null \
   && apt-mark manual $aptMark > /dev/null \
   && find /usr/local -type f -executable -exec ldd '{}' ';' \
