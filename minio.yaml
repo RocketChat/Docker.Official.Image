@@ -1,0 +1,14 @@
+services:
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9090"
+    volumes:
+      - minio:/data
+    network_mode: host
+    environment:
+      MINIO_ROOT_USER: debdut
+      MINIO_ROOT_PASSWORD: debdut2000
+
+
+volumes:
+  minio:
