@@ -2,7 +2,7 @@ FROM debian:buster-slim
 
 ## Installing Node.js
 ENV NODE_ENV production
-ENV NODE_VERSION 14.19.3
+ENV NODE_VERSION 14.21.2
 
 # Node installation based on https://github.com/nodejs/docker-node/blob/66b46292a6e5dd5856b1d5204dc51547c80eb17a/12/buster-slim/Dockerfile
 RUN ARCH="x64" \
@@ -48,7 +48,7 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
-ENV RC_VERSION 5.1.5
+ENV RC_VERSION 6.0.0
 
 WORKDIR /app
 
