@@ -30,7 +30,7 @@ services:
       - "${BIND_IP:-0.0.0.0}:${HOST_PORT:-3000}:${PORT:-3000}"
 
   mongodb:
-    image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-4.4}
+    image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-5.0}
     restart: on-failure
     volumes:
       - mongodb_data:/bitnami/mongodb
