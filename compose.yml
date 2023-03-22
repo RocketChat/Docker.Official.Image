@@ -4,7 +4,7 @@ volumes:
 services:
   rocketchat:
     image: registry.rocket.chat/rocketchat/rocket.chat:${RELEASE:-latest}
-    restart: on-failure
+    restart: always
     labels:
       traefik.enable: "true"
       traefik.http.routers.rocketchat.rule: Host(`${DOMAIN}`)
@@ -31,7 +31,7 @@ services:
 
   mongodb:
     image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-5.0}
-    restart: on-failure
+    restart: always
     volumes:
       - mongodb_data:/bitnami/mongodb
     environment:
