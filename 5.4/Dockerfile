@@ -48,7 +48,7 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
-ENV RC_VERSION 5.4.4
+ENV RC_VERSION 5.4.9
 
 WORKDIR /app
 
