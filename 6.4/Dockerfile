@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 ## Installing Node.js
 ENV NODE_ENV production
@@ -48,7 +48,7 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
-ENV RC_VERSION 6.4.1
+ENV RC_VERSION 6.4.2
 
 WORKDIR /app
 
