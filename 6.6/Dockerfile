@@ -1,5 +1,14 @@
 FROM debian:bullseye-slim
 
+LABEL org.opencontainers.image.title="Rocket.Chat" \
+	org.opencontainers.image.description="The Complete Open Source Chat Solution" \
+	org.opencontainers.image.authors="Rocket.Chat Community" \
+	org.opencontainers.image.url="https://www.rocket.chat/" \
+	org.opencontainers.image.documentation="https://docs.rocket.chat/" \
+	org.opencontainers.image.source="https://github.com/RocketChat/Rocket.Chat" \
+	org.opencontainers.image.vendor="Rocket.Chat Community" \
+	org.opencontainers.image.licenses="MIT"
+
 ## Installing Node.js
 ENV NODE_ENV production
 ENV NODE_VERSION 14.21.3
