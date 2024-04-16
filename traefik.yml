@@ -1,0 +1,27 @@
+version: '3.7'
+
+volumes:
+  traefik: { driver: local }
+
+services:
+  traefik:
+    image: docker.io/traefik:${TRAEFIK_RELEASE:-v2.9.8}
+    restart: always
+    command:
+     - --api.insecure=false
+     - --providers.docker=true
+     - --providers.docker.exposedbydefault=false
+     - --entrypoints.web.address=:80
+     - --entrypoints.web.http.redirections.entryPoint.to=https
+     - --entrypoints.web.http.redirections.entryPoint.scheme=https
+     - --entrypoints.https.address=:443
+     - --certificatesresolvers.le.acme.tlschallenge=true
+     - --certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL?need email for cert expiry notifications}
+     - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - traefik:/letsencrypt:rw
+      - /run/docker.sock:/var/run/docker.sock:ro
+    
