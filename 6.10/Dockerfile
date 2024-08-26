@@ -48,7 +48,7 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
-ENV RC_VERSION 6.5.8
+ENV RC_VERSION 6.10.4
 
 WORKDIR /app
 
@@ -56,7 +56,7 @@ RUN set -eux \
   && apt-get update \
   && apt-get install -y --no-install-recommends fontconfig \
   && aptMark="$(apt-mark showmanual)" \
-  && apt-get install -y --no-install-recommends g++ make python ca-certificates curl gnupg \
+  && apt-get install -y --no-install-recommends g++ make python3 ca-certificates curl gnupg \
   && rm -rf /var/lib/apt/lists/* \
   # gpg: key 4FD08104: public key "Rocket.Chat Buildmaster <buildmaster@rocket.chat>" imported
   && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 0E163286C20D07B9787EBE9FD7F9D0414FD08104 \
@@ -66,7 +66,7 @@ RUN set -eux \
   && tar zxf rocket.chat.tgz \
   && rm rocket.chat.tgz rocket.chat.tgz.asc \
   && cd bundle/programs/server \
-  && npm install \
+  && npm install --unsafe-perm=true \
   && apt-mark auto '.*' > /dev/null \
   && apt-mark manual $aptMark > /dev/null \
   && find /usr/local -type f -executable -exec ldd '{}' ';' \

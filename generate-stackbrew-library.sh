@@ -2,7 +2,7 @@
 set -eu
 
 declare -A aliases=(
-  [6.9]='6 latest'
+  [6.11]='6 latest'
 )
 
 cd "$(cd "${0%/*}" && pwd -P)"
