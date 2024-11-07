@@ -1,4 +1,5 @@
 volumes:
+version: "3.8"
   mongodb_data: { driver: local }
 
 services:
