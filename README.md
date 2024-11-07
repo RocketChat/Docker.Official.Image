@@ -40,3 +40,18 @@ If you're using a third party Mongo provider, or working with Kubernetes, you ne
 
     docker run --name rocketchat -p 80:3000 --env ROOT_URL=http://localhost --env MONGO_URL=mongodb://mymongourl/mydb -d rocket.chat
 
+### Kubernetes
+
+To create mongo instances, run this command:
+
+    kubectl apply -f k8s/mongo.yaml
+
+You need to configure mongo instances and connect as a replica set. For more information, you can read [this article](https://ajorloo.medium.com/deploy-rocket-chat-server-using-kubernetes-2d6c4228853).
+
+After configuring the mongo instances, run this command to create Rocketchat service:
+
+    kubectl apply -f k8s/rocketchat.yaml
+
+To get the external IP run this command:
+
+    kubectl get services rocketchat-server 
