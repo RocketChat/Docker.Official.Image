@@ -1,0 +1,35 @@
+name: Automatically update Docker image versions
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'rocketchat'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run automation script
+        uses: actions/github-script@v7
+        id: updt
+        with:
+          result-encoding: string
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/build-automation.mjs`);
+            return script(github);
+
+      - name: Create update PR
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          author: "rocketchat-github-ci <buildmaster@rocket.chat>"
+          branch: update-branch
+          base: master
+          commit-message: "feat: Rocket.Chat ${{ steps.updt.outputs.result }}"
+          title: "feat: Rocket.Chat ${{ steps.updt.outputs.result }}"
+          delete-branch: true
+          reviewers: |
+            sampaiodiego
