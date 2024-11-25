@@ -92,3 +92,7 @@ jobs:
           responseCode: '200'
           timeout: 60000
           interval: 1000
+
+      - name: Show logs if failed
+        if: failure()
+        run: docker compose logs
