@@ -10,7 +10,7 @@ It is a great solution for communities and companies wanting to privately host t
 ### Docker Compose
 If you need both the mongo and Rocket.Chat containers, use a docker compose one-liner:
 
-    docker-compose up -d
+    docker compose up -d
 
 Which will run both containers, with Rocket.Chat listening on http://localhost:3000
 Then, access it via `http://localhost:3000` in a browser.  Replace `localhost` in `ROOT_URL` with your own domain name if you are hosting at your own domain.
