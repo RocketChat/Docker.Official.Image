@@ -27,7 +27,7 @@ jobs:
         with:
           author: "rocketchat-github-ci <buildmaster@rocket.chat>"
           branch: update-branch
-          base: master
+          base: main
           commit-message: "feat: Rocket.Chat ${{ steps.updt.outputs.result }}"
           title: "feat: Rocket.Chat ${{ steps.updt.outputs.result }}"
           delete-branch: true
