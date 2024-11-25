@@ -65,7 +65,7 @@ jobs:
           result-encoding: string
           script: |
             const version = "${{ matrix.version }}".split('.');
-            return version[0].version[1]
+            return `${version[0]}.${version[1]}`
 
       - name: Checkout
         uses: actions/checkout@v4
