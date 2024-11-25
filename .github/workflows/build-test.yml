@@ -81,7 +81,8 @@ jobs:
 
       - name: Run Image
         env:
-          IMAGE: rocket.chat:${{ matrix.version }}
+          IMAGE: rocket.chat
+          RELEASE: ${{ matrix.version }}
         run: docker compose up -d
 
       - name: Wait for Rocket.Chat to start up
