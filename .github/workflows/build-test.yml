@@ -1,0 +1,98 @@
+name: build-test
+
+on:
+  push:
+    paths:
+      - "**/Dockerfile"
+      - genMatrix.js
+      - compose.yml
+      - ".github/workflows/build-test.yml"
+
+  pull_request:
+    paths:
+      - "**/Dockerfile"
+      - genMatrix.js
+      - compose.yml
+      - ".github/workflows/build-test.yml"
+
+jobs:
+  gen-matrix:
+    name: generate-matrix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Calculate file differences
+        id: diff
+        uses: tj-actions/changed-files@v45
+        with:
+          json: true
+          escape_json: false
+
+      - name: Generate testing matrix
+        uses: actions/github-script@v7
+        id: generator
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require(`${process.env.GITHUB_WORKSPACE}/genMatrix.js`)
+            return script(
+              ${{ steps.diff.outputs.added_files }},
+              ${{ steps.diff.outputs.modified_files }},
+              ${{ steps.diff.outputs.renamed_files }},
+            );
+
+    outputs:
+      matrix: ${{ steps.generator.outputs.result }}
+
+  build:
+    if: ${{ fromJson(needs.gen-matrix.outputs.matrix) }}
+    needs: gen-matrix
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.gen-matrix.outputs.matrix) }}
+
+    steps:
+      - name: Get short node version
+        uses: actions/github-script@v7
+        id: short-version
+        with:
+          result-encoding: string
+          script: |
+            const version = "${{ matrix.version }}".split('.');
+            return `${version[0]}.${version[1]}`
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          push: false
+          load: true
+          context: .
+          file: ./${{ steps.short-version.outputs.result }}/Dockerfile
+          tags: rocket.chat:${{ matrix.version }}
+
+      - name: Run Image
+        env:
+          IMAGE: rocket.chat
+          RELEASE: ${{ matrix.version }}
+        run: docker compose up -d
+
+      - name: Wait for Rocket.Chat to start up
+        uses: cygnetdigital/wait_for_response@v2.0.0
+        with:
+          url: 'http://localhost:3000/health'
+          responseCode: '200'
+          timeout: 60000
+          interval: 1000
+
+      - name: Show logs if failed
+        if: failure()
+        run: docker compose logs
