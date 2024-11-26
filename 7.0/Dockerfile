@@ -57,6 +57,9 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   | xargs -r apt-mark manual \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
+# Deno installation based on https://github.com/denoland/deno_docker?tab=readme-ov-file#using-your-own-base-image
+COPY --from=denoland/deno:bin-1.37.1 /deno /usr/local/bin/deno
+
 RUN groupadd -r rocketchat \
   && useradd -r -g rocketchat rocketchat \
   && mkdir -p /app/uploads \
