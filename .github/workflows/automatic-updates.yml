@@ -23,8 +23,9 @@ jobs:
 
       - name: Create update PR
         id: cpr
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.GH_API_TOKEN }}
           author: "rocketchat-github-ci <buildmaster@rocket.chat>"
           branch: update-branch
           base: main
