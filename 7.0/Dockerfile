@@ -13,7 +13,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     arm64) ARCH='arm64';; \
     armhf) ARCH='armv7l';; \
     i386) ARCH='x86';; \
-    *) echo "unsupported architecture"; exit 1 ;; \
+    *) echo "unsupported NodeJS architecture"; exit 1 ;; \
   esac \
   # use pre-existing gpg directory, see https://github.com/nodejs/docker-node/pull/1895#issuecomment-1550389150
   && export GNUPGHOME="$(mktemp -d)" \
@@ -57,8 +57,31 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   | xargs -r apt-mark manual \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
-# Deno installation based on https://github.com/denoland/deno_docker?tab=readme-ov-file#using-your-own-base-image
-COPY --from=denoland/deno:bin-1.37.1 /deno /usr/local/bin/deno
+ENV DENO_VERSION=1.37.1
+
+RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
+  && case "${dpkgArch##*-}" in \
+    amd64) ARCH='x86_64';; \
+    arm64) ARCH='aarch64';; \
+    *) echo "unsupported Deno architecture"; exit 1 ;; \
+  esac \
+  && set -ex \
+  && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
+  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip \
+    --output /tmp/deno.zip \
+  && unzip /tmp/deno.zip -d /tmp \
+  && rm /tmp/deno.zip \
+  && chmod 755 /tmp/deno \
+  && mv /tmp/deno /usr/local/bin/deno \
+  && apt-mark auto '.*' > /dev/null \
+  && find /usr/local -type f -executable -exec ldd '{}' ';' \
+  | awk '/=>/ { print $(NF-1) }' \
+  | sort -u \
+  | xargs -r dpkg-query --search \
+  | cut -d: -f1 \
+  | sort -u \
+  | xargs -r apt-mark manual \
+  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
 RUN groupadd -r rocketchat \
   && useradd -r -g rocketchat rocketchat \
