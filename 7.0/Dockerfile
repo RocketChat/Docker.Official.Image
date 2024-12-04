@@ -1,5 +1,7 @@
 FROM debian:bookworm-slim
 
+ENV RC_VERSION 7.0.0
+
 ## Installing Node.js
 ENV NODE_ENV production
 ENV NODE_VERSION 20.17.0
@@ -13,7 +15,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
     arm64) ARCH='arm64';; \
     armhf) ARCH='armv7l';; \
     i386) ARCH='x86';; \
-    *) echo "unsupported NodeJS architecture"; exit 1 ;; \
+    *) echo "unsupported architecture"; exit 1 ;; \
   esac \
   # use pre-existing gpg directory, see https://github.com/nodejs/docker-node/pull/1895#issuecomment-1550389150
   && export GNUPGHOME="$(mktemp -d)" \
@@ -90,8 +92,6 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
-ENV RC_VERSION 7.0.0
-
 WORKDIR /app
 
 RUN set -eux \
@@ -131,8 +131,7 @@ ENV DEPLOY_METHOD=docker-official \
   MONGO_URL=mongodb://db:27017/meteor \
   HOME=/tmp \
   PORT=3000 \
-  ROOT_URL=http://localhost:3000 \
-  Accounts_AvatarStorePath=/app/uploads
+  ROOT_URL=http://localhost:3000
 
 EXPOSE 3000
 
