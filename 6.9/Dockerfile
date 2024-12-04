@@ -1,5 +1,7 @@
 FROM debian:bullseye-slim
 
+ENV RC_VERSION 6.9.7
+
 ## Installing Node.js
 ENV NODE_ENV production
 ENV NODE_VERSION 14.21.3
@@ -48,8 +50,6 @@ RUN groupadd -r rocketchat \
 
 VOLUME /app/uploads
 
-ENV RC_VERSION 6.9.7
-
 WORKDIR /app
 
 RUN set -eux \
@@ -89,8 +89,7 @@ ENV DEPLOY_METHOD=docker-official \
   MONGO_URL=mongodb://db:27017/meteor \
   HOME=/tmp \
   PORT=3000 \
-  ROOT_URL=http://localhost:3000 \
-  Accounts_AvatarStorePath=/app/uploads
+  ROOT_URL=http://localhost:3000
 
 EXPOSE 3000
 
