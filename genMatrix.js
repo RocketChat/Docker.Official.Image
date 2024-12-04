@@ -11,7 +11,7 @@ const testFiles = [
 const rcDirRegex = /^\d+\.\d+$/;
 
 const areTestFilesChanged = (changedFiles) => changedFiles
-  .some((file) => testFiles.includes(file));
+  .some((file) => testFiles.includes(file) || file.includes('templates/'));
 
 // Returns a list of the child directories in the given path
 const getChildDirectories = (parent) => fs.readdirSync(parent, { withFileTypes: true })
