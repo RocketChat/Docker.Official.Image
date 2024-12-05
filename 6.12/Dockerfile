@@ -1,6 +1,6 @@
 FROM debian:bullseye-slim
 
-ENV RC_VERSION 6.12.2
+ENV RC_VERSION 6.12.3
 
 ## Installing Node.js
 ENV NODE_ENV production
