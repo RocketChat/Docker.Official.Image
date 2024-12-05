@@ -1,7 +1,5 @@
 FROM debian:bullseye-slim
 
-ENV RC_VERSION 6
-
 ## Installing Node.js
 ENV NODE_ENV production
 ENV NODE_VERSION 14
@@ -51,6 +49,8 @@ RUN groupadd -r rocketchat \
 VOLUME /app/uploads
 
 WORKDIR /app
+
+ENV RC_VERSION 6
 
 RUN set -eux \
   && apt-get update \

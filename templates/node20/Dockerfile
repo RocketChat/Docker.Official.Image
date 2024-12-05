@@ -1,7 +1,5 @@
 FROM debian:bookworm-slim
 
-ENV RC_VERSION 7
-
 ## Installing Node.js
 ENV NODE_ENV production
 ENV NODE_VERSION 20
@@ -93,6 +91,8 @@ RUN groupadd -r rocketchat \
 VOLUME /app/uploads
 
 WORKDIR /app
+
+ENV RC_VERSION 7
 
 RUN set -eux \
   && apt-get update \
