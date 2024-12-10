@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-ENV RC_VERSION 7.0.0
+ENV RC_VERSION 7.0.1
 
 ## Installing Node.js
 ENV NODE_ENV production
