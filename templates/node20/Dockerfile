@@ -10,10 +10,10 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   esac \
   && set -ex \
   && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
-  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip \
-    --output /tmp/deno.zip \
-  && unzip /tmp/deno.zip -d /tmp \
-  && rm /tmp/deno.zip \
+  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
+  && echo "3ebb3c234c4ea5d914eb394af340e08ae0787e95ca8ec2c58b869752760faa00 /tmp/deno-${ARCH}-unknown-linux-gnu.zip" | sha256sum -c - \
+  && unzip /tmp/deno-${ARCH}-unknown-linux-gnu.zip -d /tmp \
+  && rm /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
   && chmod 755 /tmp/deno \
   && mv /tmp/deno /usr/local/bin/deno \
   && apt-mark auto '.*' > /dev/null \
