@@ -35,8 +35,9 @@ VOLUME /app/uploads
 
 WORKDIR /app
 
-ENV RC_VERSION=7 \
-  NODE_ENV=production
+ENV NODE_ENV=production
+
+ENV RC_VERSION=7
 
 RUN set -eux \
   && apt-get update \
