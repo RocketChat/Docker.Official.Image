@@ -44,7 +44,7 @@ const getAffectedDockerfiles = (filesAdded, filesModified, filesRenamed) => {
 };
 
 const getFullRocketChatVersionFromDockerfile = (file) => fs.readFileSync(file, 'utf8')
-  .match(/^ENV RC_VERSION (\d*\.*\d*\.\d*)/m)[1];
+  .match(/^ENV RC_VERSION=(\d*\.*\d*\.\d*)/m)[1];
 
 const getDockerfileMatrixEntry = (file) => {
   const version = getFullRocketChatVersionFromDockerfile(file);
