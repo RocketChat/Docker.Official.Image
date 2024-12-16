@@ -76,8 +76,8 @@ export default async function(github) {
 
     await exec(`cp -r ./templates/node${nodeMajor} ${minor}`, { shell: "bash" });
 
-    await exec(`sed -ri 's/^(ENV RC_VERSION) .*/\\1 '"${fullVersion}"'/;' ${minor}/Dockerfile`, { shell: "bash" });
-    await exec(`sed -ri 's/^(ENV NODE_VERSION) .*/\\1 '"${nodeVersion}"'/;' ${minor}/Dockerfile`, { shell: "bash" });
+    await exec(`sed -ri 's/^(ENV RC_VERSION=).*/\\1'"${fullVersion}"'/;' ${minor}/Dockerfile`, { shell: "bash" });
+    await exec(`sed -ri 's/^(ENV NODE_VERSION=).*/\\1'"${nodeVersion}"'/;' ${minor}/Dockerfile`, { shell: "bash" });
   }
 
   return newVersions;
