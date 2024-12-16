@@ -24,6 +24,6 @@ get_latest() {
 
 for version in "${versions[@]%/}"; do
   if [ -f "${version}/Dockerfile" ]; then
-    sed -ri 's/^(ENV RC_VERSION) .*/\1 '"$(get_latest "${version}")"'/;' "${version}/Dockerfile"
+    sed -ri 's/^(ENV RC_VERSION=).*/\1 '"$(get_latest "${version}")"'/;' "${version}/Dockerfile"
   fi
 done;

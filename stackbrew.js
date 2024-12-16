@@ -49,7 +49,7 @@ for (version of versions) {
   // Get full version from the first Dockerfile
   if (!fullversion) {
     const dockerfile = fs.readFileSync(path.join(version, 'Dockerfile'), 'utf-8');
-    fullversion = dockerfile.match(/ENV RC_VERSION (?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)/)
+    fullversion = dockerfile.match(/ENV RC_VERSION=(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)/)
   }
   let tags = [
     `${fullversion.groups.major}.${fullversion.groups.minor}.${fullversion.groups.patch}`,
