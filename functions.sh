@@ -27,5 +27,5 @@ function get_full_version() {
   local default_dockerfile
   default_dockerfile="${version}/Dockerfile"
 
-  grep -m1 'ENV RC_VERSION=' "${default_dockerfile}" | cut -d' ' -f3
+  grep -m1 'ENV RC_VERSION=' "${default_dockerfile}" | cut -d'=' -f2
 }
