@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "**/Dockerfile"
+      - "!templates/**"
       - genMatrix.js
       - compose.yml
       - ".github/workflows/build-test.yml"
@@ -11,6 +12,7 @@ on:
   pull_request:
     paths:
       - "**/Dockerfile"
+      - "!templates/**"
       - genMatrix.js
       - compose.yml
       - ".github/workflows/build-test.yml"
