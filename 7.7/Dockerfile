@@ -1,6 +1,6 @@
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
-ENV DENO_VERSION=1.37.1
+ENV DENO_VERSION=1.43.5
 
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
@@ -11,7 +11,7 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && set -ex \
   && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
   && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
-  && echo "3ebb3c234c4ea5d914eb394af340e08ae0787e95ca8ec2c58b869752760faa00 /tmp/deno-x86_64-unknown-linux-gnu.zip" | sha256sum -c - \
+  && echo "246bf818932c5e11adb85afaaf3c90e65d5cbe14bcaa8ea14d35fc085869775d /tmp/deno-x86_64-unknown-linux-gnu.zip" | sha256sum -c - \
   && unzip /tmp/deno-${ARCH}-unknown-linux-gnu.zip -d /tmp \
   && rm /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
   && chmod 755 /tmp/deno \
@@ -37,7 +37,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-ENV RC_VERSION=7.0.9
+ENV RC_VERSION=7.7.0
 
 RUN set -eux \
   && apt-get update \
