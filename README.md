@@ -27,6 +27,7 @@ COMPOSE_NATS_ENABLED=y # or n, when disabling nats you should also set to blank 
 COMPOSE_TRAEFIK_ENABLED=y # or n
 COMPOSE_ROCKETCHAT_ENABLED=y # or n
 COMPOSE_MONITORING_ENABLED=y # or n
+COMPOSE_MONGO_ENABLED=n #  or n, a MONGO_URL must be provided.
 ```
 
 
