@@ -85,7 +85,15 @@ jobs:
         env:
           IMAGE: rocket.chat
           RELEASE: ${{ matrix.version }}
-        run: docker compose up -d
+        run: |
+          cat <<EOF > .env
+          REG_TOKEN=
+          COMPOSE_HTTPS=n
+          DOMAIN=localhost
+          GRAFANA_DOMAIN=grafana.localhost
+          EOF
+          ./rocketchat.sh up -d
+
 
       - name: Wait for Rocket.Chat to start up
         uses: cygnetdigital/wait_for_response@v2.0.0
@@ -97,4 +105,4 @@ jobs:
 
       - name: Show logs if failed
         if: failure()
-        run: docker compose logs
+        run: ./rocketchat.sh logs
