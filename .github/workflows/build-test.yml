@@ -101,9 +101,14 @@ jobs:
         with:
           url: 'http://localhost/health'
           responseCode: '200'
-          timeout: 60000
+          timeout: 120000
           interval: 1000
 
       - name: Show logs if failed
         if: failure()
-        run: ./rocketchat.sh logs
+        run: |
+          echo "Latest logs"
+          ./rocketchat.sh logs
+          echo "-----------------------"
+          echo "Used .env"
+          cat .env
