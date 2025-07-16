@@ -1,9 +1,3 @@
-include:
-  - compose-nats.yml
-  - compose-traefik.yml
-  - compose-monitoring.yml
-  - compose-mongodb.yml
-
 services:
   rocketchat:
     profiles:
