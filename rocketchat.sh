@@ -82,8 +82,9 @@ read_yn() {
 
 save_env() {
   cat <<EOF >.env
-# Sane devs
+# Sane defaults
 BIND_IP=${BIND_IP:-0.0.0.0}
+HOST_PORT=${HOST_PORT:-3000}
 ALLOW_EMPTY_PASSWORD=${ALLOW_EMPTY_PASSWORD:-yes}
 DEPLOY_PLATFORM=${DEPLOY_PLATFORM:-docker}
 GRAFANA_VERSION=${GRAFANA_VERSION:-}

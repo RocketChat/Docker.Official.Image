@@ -87,13 +87,19 @@ jobs:
           RELEASE: ${{ matrix.version }}
         run: |
           version="$(echo ${{matrix.version}} | cut -d. -f 1,2 --output-delimiter=- )"
+          port="$(echo ${{matrix.version}} | cut -d. -f 1,2 --output-delimiter= )" # 7.1 becames 71
           cat <<EOF > .env
           REG_TOKEN=
-          COMPOSE_HTTPS=n
           DOMAIN=localhost
+          BIND_IP=0.0.0.0
+          HOST_PORT=3000
+          PORT=3000
+
           GRAFANA_DOMAIN=grafana.localhost
           COMPOSE_PROJECT=rocketchat-${version}
+          COMPOSE_HTTPS=n
           COMPOSE_MONITORING_ENABLED=n
+          COMPOSE_TRAEFIK_ENABLED=n
           EOF
           ./rocketchat.sh
 
@@ -101,7 +107,7 @@ jobs:
       - name: Wait for Rocket.Chat to start up
         uses: cygnetdigital/wait_for_response@v2.0.0
         with:
-          url: 'http://localhost/health'
+          url: 'http://localhost:3000/health'
           responseCode: '200'
           timeout: 120000
           interval: 1000
