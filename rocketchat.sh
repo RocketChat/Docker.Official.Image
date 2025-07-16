@@ -15,7 +15,7 @@ files=(
   "compose-nats.yml"
   "compose-traefik.yml"
   "compose.yml"
-  "compose.sh"
+  "rocketchat.sh"
 )
 
 for file in "${files[@]}"; do
@@ -183,7 +183,7 @@ declare -a COMPOSE_ARGS=()
 [[ "${COMPOSE_MONGO_ENABLED}" == "y" ]] &&
   COMPOSE_ARGS+=("--profile=mongodb" "--file=compose-mongodb.yml") &&
   [[ "${COMPOSE_MONITORING_ENABLED}" == "y" ]] &&
-  COMPOSE_ARGS+=("--profile=mongo-exporter")
+  COMPOSE_ARGS+=("--profile=mongodb-exporter")
 
 [[ "${COMPOSE_NATS_ENABLED}" == "y" ]] &&
   COMPOSE_ARGS+=("--profile=nats" "--file=compose-nats.yml") &&
