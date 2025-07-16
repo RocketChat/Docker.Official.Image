@@ -130,6 +130,7 @@ TRAEFIK_HTTPS_PORT=${TRAEFIK_HTTPS_PORT}
 # By default prometheus only on localhost
 PROMETHEUS_LISTEN_ADDR=${PROMETHEUS_LISTEN_ADDR:-127.0.0.1}
 
+COMPOSE_PROJECT=${COMPOSE_PROJECT:-}
 EOF
 }
 
@@ -209,8 +210,8 @@ save_env
 compose_cmd() {
   # Which docker command to use
   DOCKER="$(command -v docker || command -v podman)"
-  echo "${DOCKER}" "compose" --project-name=rocketchat "${COMPOSE_ARGS[@]}" "$@"
-  "${DOCKER}" "compose" --project-name=rocketchat "${COMPOSE_ARGS[@]}" "$@"
+  echo "${DOCKER}" "compose" "--project-name=${COMPOSE_PROJECT:-rocketchat}" "${COMPOSE_ARGS[@]}" "$@"
+  "${DOCKER}" "compose" "--project-name=${COMPOSE_PROJECT:-rocketchat}" "${COMPOSE_ARGS[@]}" "$@"
 }
 
 if [[ -z "${*}" ]]; then

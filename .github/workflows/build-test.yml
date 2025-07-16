@@ -86,14 +86,16 @@ jobs:
           IMAGE: rocket.chat
           RELEASE: ${{ matrix.version }}
         run: |
+          version="$(echo ${{matrix.version}} | cut -d. -f 1,2 --output-delimiter=- )"
           cat <<EOF > .env
           REG_TOKEN=
           COMPOSE_HTTPS=n
           DOMAIN=localhost
           GRAFANA_DOMAIN=grafana.localhost
-          COMPOSE_PROJECT=rocketchat-${{matrix.version}}
+          COMPOSE_PROJECT=rocketchat-${version}
+          COMPOSE_MONITORING_ENABLED=n
           EOF
-          ./rocketchat.sh up -d
+          ./rocketchat.sh
 
 
       - name: Wait for Rocket.Chat to start up
@@ -103,6 +105,11 @@ jobs:
           responseCode: '200'
           timeout: 120000
           interval: 1000
+
+      - name: Remove containers
+        if: always()
+        run: |
+          ./rocketchat.sh down
 
       - name: Show logs if failed
         if: failure()
