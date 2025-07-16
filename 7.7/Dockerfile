@@ -76,8 +76,11 @@ ENV DEPLOY_METHOD=docker-official \
   MONGO_URL=mongodb://db:27017/meteor \
   HOME=/tmp \
   PORT=3000 \
-  ROOT_URL=http://localhost:3000
+  ROOT_URL=http://localhost:3000 \
+  OVERWRITE_SETTING_Prometheus_Enabled=true \
+  OVERWRITE_SETTING_Prometheus_Port=9458
 
 EXPOSE 3000
+EXPOSE 9458
 
 CMD ["node", "main.js"]
