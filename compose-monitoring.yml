@@ -16,10 +16,10 @@ services:
     expose:
       - 9090
     ports:
-      - ${PROMETHEUS_LISTEN_ADDR:-127.0.0.1}:9090:9090
+      - ${PROMETHEUS_LISTEN_ADDR:-127.0.0.1}:${PROMETHEUS_PORT:-9090}:9090
     volumes:
       - prometheus_tsdb:/prometheus
-      - ./files/prometheus:/etc/prometheus
+      - ./files/prometheus:/etc/prometheus:Z
     # healthcheck:
     #   test: ["CMD", "nc", "-zv", "-w", "10", "localhost", "9090"]
     #   interval: 30s
@@ -51,8 +51,8 @@ services:
       - 3000
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./files/grafana/dashboards:/dashboards:rw
-      - ./files/grafana/provisioning/:/etc/grafana/provisioning:rw
+      - ./files/grafana/dashboards:/dashboards:Z
+      - ./files/grafana/provisioning/:/etc/grafana/provisioning:Z
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-rc-admin}
       - GF_AUTH_ANONYMOUS_ENABLED=false

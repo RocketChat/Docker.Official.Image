@@ -14,7 +14,7 @@ services:
         apk add envsubst
         cat /traefik_config/template-$${http}-dynamic.yml | envsubst > /traefik_config/dynamic.yml
     volumes:
-      - ./files/traefik/:/traefik_config:rw
+      - ./files/traefik/:/traefik_config:Z
     restart: "no"
 
   traefik:
@@ -53,7 +53,7 @@ services:
       - ${TRAEFIK_HTTPS_PORT:-443}
     volumes:
       - traefik:/letsencrypt:rw
-      - ./files/traefik/:/traefik_config:rw
+      - ./files/traefik/:/traefik_config:Z
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck"]
     #   interval: 30s
