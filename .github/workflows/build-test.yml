@@ -88,20 +88,8 @@ jobs:
         run: |
           version="$(echo ${{matrix.version}} | cut -d. -f 1,2 --output-delimiter=- )"
           port="$(echo ${{matrix.version}} | cut -d. -f 1,2 --output-delimiter= )" # 7.1 becames 71
-          cat <<EOF > .env
-          REG_TOKEN=
-          DOMAIN=localhost
-          BIND_IP=0.0.0.0
-          HOST_PORT=3000
-          PORT=3000
-
-          GRAFANA_DOMAIN=grafana.localhost
-          COMPOSE_PROJECT=rocketchat-${version}
-          COMPOSE_HTTPS=n
-          COMPOSE_MONITORING_ENABLED=n
-          COMPOSE_TRAEFIK_ENABLED=n
-          EOF
-          ./rocketchat.sh
+          cp .env.example .env
+          docker compose -f compose.yml -f compose-mongodb.yml up -d
 
 
       - name: Wait for Rocket.Chat to start up
@@ -114,14 +102,14 @@ jobs:
 
       - name: Remove containers
         run: |
-          ./rocketchat.sh down
+          docker compose -f compose.yml -f compose-mongodb.yml down
 
       - name: Show logs if failed
         if: failure()
         run: |
           echo "Latest logs"
-          ./rocketchat.sh logs rocketchat
-          ./rocketchat.sh down
+          docker compose -f compose.yml -f compose-mongodb.yml logs rocketchat
+          docker compose -f compose.yml -f compose-mongodb.yml down
           echo "-----------------------"
           echo "Used .env"
           cat .env
