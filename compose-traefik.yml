@@ -1,113 +1,27 @@
 services:
-  traefik-init-http: &traefik-init-http
-    profiles: [http]
-    image: docker.io/alpine/curl:latest
+  traefik-init:
+    image: docker.io/alpine:latest
+    entrypoint: sh
+    environment:
+      DOMAIN: "${DOMAIN:-localhost}"
+      GRAFANA_DOMAIN: "${GRAFANA_DOMAIN:-grafana.localhost}"
     command:
-      - sh
       - -c
       - |
-        cat <<EOF > /traefik_config/dynamic.yml
-        http:
-          routers:
-            rocketchat:
-              entryPoints:
-                - http
-              service: rocketchat
-              rule: "Host(\`${DOMAIN:-localhost}\`)"
-            grafana:
-              entryPoints:
-                - http
-              rule: "Host(\`${GRAFANA_DOMAIN:-grafana.localhost}\`)"
-              service: grafana
-          services:
-            rocketchat:
-              loadBalancer:
-                servers:
-                  - url: "http://rocketchat:3000"
-            grafana:
-              loadBalancer:
-                servers:
-                  - url: "http://grafana:3000"
-        EOF
+        test -f /traefik_config/dynamic.yml && echo "Skipping: target file already exists" && exit 0
+        export http=http
+        [ "${TRAEFIK_HTTPS}" = "y" ] && http=https
+        apk add envsubst
+        cat /traefik_config/template-$${http}-dynamic.yml | envsubst > /traefik_config/dynamic.yml
     volumes:
-      - traefik_config:/traefik_config:rw
+      - ./files/traefik/:/traefik_config:rw
     restart: "no"
-
-  traefik-init-https:
-    <<: *traefik-init-http
-    profiles: [https]
-    command:
-      - sh
-      - -c
-      - |
-        cat <<EOF > /traefik_config/dynamic.yml
-        entrypoints:
-          https:
-            address: ":443"
-            http:
-              redirections:
-                entryPoint:
-                  to: "http"
-                  scheme: "https"
-        http:
-          routers:
-            rocketchat:
-              entryPoints:
-                - https
-              service: rocketchat
-              rule: "Host(\`${DOMAIN:-localhost}\`)"
-              tls:
-                certResolver: le
-            grafana:
-              entryPoints:
-                - https
-              rule: "Host(\`${GRAFANA_DOMAIN:-grafana.localhost}\`)"
-              service: grafana
-              tls:
-                certResolver: le
-          services:
-            rocketchat:
-              loadBalancer:
-                servers:
-                  - url: "http://rocketchat:3000"
-            grafana:
-              loadBalancer:
-                servers:
-                  - url: "http://grafana:3000"
-        EOF
-    volumes:
-      - traefik_config:/traefik_config:rw
-
-  traefik-wait-for-config:
-    profiles: [http, https]
-    image: docker.io/alpine/curl:latest
-    restart: "no"
-    volumes:
-      - traefik_config:/traefik_config:rw
-    command:
-      - sh
-      - -c
-      - |
-        max=30
-        count=0
-        while [ ! -f /traefik_config/dynamic.yml ] && [ $$count -lt $$max ]; do
-          echo "Waiting for /traefik_config/dynamic.yml to be created..."
-          sleep 1
-          count=$$((count + 1))
-        done
-        if [ $$count -eq $$max ]; then
-          echo "Timed out waiting for /traefik_config/dynamic.yml"
-          exit 1
-        else
-          echo "/traefik_config/dynamic.yml is ready."
-        fi
 
   traefik:
-    profiles: [traefik]
     image: docker.io/traefik:${TRAEFIK_RELEASE:-v3.4}
     restart: always
     depends_on:
-      traefik-wait-for-config:
+      traefik-init:
         condition: service_completed_successfully
     command:
       - --api.insecure=${TRAEFIK_API_INSECURE:-false}
@@ -115,7 +29,7 @@ services:
       - --providers.docker.exposedbydefault=false
       - --entrypoints.http.address=:${TRAEFIK_HTTP_PORT:-80}
       - --entrypoints.https.address=:${TRAEFIK_HTTPS_PORT:-443}
-      - --entrypoints.metrics.address=:8082
+      - --entrypoints.metrics.address=:9096
       - --metrics.prometheus=true
       # ssl
       - --certificatesresolvers.le.acme.tlschallenge=true
@@ -133,10 +47,13 @@ services:
       - ${TRAEFIK_DASHBOARD_PORT:-8080}:8080
       - ${TRAEFIK_HTTPS_PORT:-443}:${TRAEFIK_HTTPS_PORT:-443}
     expose:
-      - 8082
+      - 9096
+      - ${TRAEFIK_HTTP_PORT:-80}
+      - ${TRAEFIK_DASHBOARD_PORT:-8080}
+      - ${TRAEFIK_HTTPS_PORT:-443}
     volumes:
       - traefik:/letsencrypt:rw
-      - traefik_config:/traefik_config:rw
+      - ./files/traefik/:/traefik_config:rw
     # healthcheck:
     #   test: ["CMD", "traefik", "healthcheck"]
     #   interval: 30s
@@ -146,5 +63,5 @@ services:
 
 
 volumes:
+  # this is for ssl shennanigans, users usually won't need to bother with it
   traefik: { driver: local }
-  traefik_config: { driver: local }

@@ -1,111 +1,25 @@
 services:
-  prometheus-init: &prometheus-init
-    profiles:
-      - monitoring
-      - mongodb-exporter
-      - nats-exporter
-    image: docker.io/alpine/curl
-    entrypoint:
-      - sh
-      - -c
-    command:
-      - |
-        mkdir -p /etc/prometheus/file_sd_configs
-        cat <<EOF | tee /etc/prometheus/prometheus.yml
-          global:
-            scrape_interval: ${SCRAPE_INTERVAL:-60s} # Default scrape interval
-            evaluation_interval: ${EVALUATION_INTERVAL:-60s} # Default evaluation interval
-
-          scrape_configs:
-            - job_name: 'file_sd_configs'
-              file_sd_configs:
-                - refresh_interval: 30s
-                  files:
-                    - /etc/prometheus/file_sd_configs/*.yaml
-        EOF
-        cat <<EOF | tee /etc/prometheus/file_sd_configs/prometheus.yaml
-          - targets:
-              - prometheus:9090
-            labels:
-              job: prometheus
-              service: prometheus
-        EOF
-
-        cat <<EOF | tee /etc/prometheus/file_sd_configs/node-exporter.yaml
-          - targets:
-              - ${DOCKER_GATEWAY:-172.17.0.1}:9100
-            labels:
-              job: node-exporter
-              service: node-exporter
-        EOF
-    volumes:
-      - prometheus_config:/etc/prometheus
-
-  prometheus-rocketchat-target: &prometheus-rocketchat-target
-    <<: *prometheus-init
-    profiles: [rocketchat-exporter]
-    depends_on:
-      prometheus-init:
-        condition: service_completed_successfully
-    command:
-      - |
-        cat <<EOF | tee /etc/prometheus/file_sd_configs/rocketchat.yaml
-        - targets:
-            - rocketchat:${METRICS_PORT:-9458}
-          labels:
-            job: rocketchat
-            service: rocketchat
-        EOF
-
-  prometheus-nats-target: &prometheus-nats-target
-    <<: *prometheus-init
-    profiles: [nats-exporter]
-    command:
-      - |
-        cat <<EOF | tee /etc/prometheus/file_sd_configs/nats.yaml
-        - targets:
-            - nats-exporter:7777
-          labels:
-            job: nats
-            service: nats
-        EOF
-
-  prometheus-mongodb-target: &prometheus-mongodb-target
-    <<: *prometheus-init
-    profiles: [mongodb-exporter]
-    command:
-      - |
-        cat <<EOF | tee /etc/prometheus/file_sd_configs/mongodb.yaml
-        - targets:
-            - mongodb-exporter:9216
-          labels:
-            job: mongodb
-            service: mongodb
-        EOF
-
   prometheus:
-    profiles: [monitoring]
     image: docker.io/prom/prometheus:${PROMETHEUS_VERSION:-v3.4.2}
     restart: always
     user: root
-    depends_on:
-      prometheus-init:
-        condition: service_completed_successfully
     command:
       - --web.console.templates=/usr/share/prometheus/consoles
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.enable-lifecycle
       - --web.listen-address=:9090
       - --storage.tsdb.path=/prometheus/data
+      - --config.auto-reload-interval=30s
+      - --auto-gomaxprocs	
       - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-15GB} # this full docker compose should use around 100MB per day for 30s scrape interval
       - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-15d}
     expose:
       - 9090
     ports:
-      - ${PROMETHEUS_LISTEN_ADDR}:9090:9090
+      - ${PROMETHEUS_LISTEN_ADDR:-127.0.0.1}:9090:9090
     volumes:
       - prometheus_tsdb:/prometheus
-      - prometheus_config:/etc/prometheus
+      - ./files/prometheus:/etc/prometheus
     # healthcheck:
     #   test: ["CMD", "nc", "-zv", "-w", "10", "localhost", "9090"]
     #   interval: 30s
@@ -113,19 +27,7 @@ services:
     #   retries: 10
     #   start_period: 10s
 
-  prometheus-reload:
-    profiles: [monitoring]
-    image: docker.io/alpine/curl
-    command: -XPOST http://prometheus:9090/-/reload
-    depends_on:
-      prometheus:
-        condition: service_started
-      prometheus-init:
-        condition: service_completed_successfully
-        restart: true
-
   node-exporter:
-    profiles: [monitoring]
     image: docker.io/prom/node-exporter:${NODE_EXPORTER_VERSION:-v1.9.1}
     restart: always
     privileged: true # Required for accessing host metrics
@@ -142,85 +44,15 @@ services:
     expose:
       - 9100
   
-  grafana-init:
-    profiles: [monitoring]
-    image: docker.io/alpine/curl
-    volumes:
-      - grafana_dashboards:/dashboards
-      - grafana_provisioning:/etc/grafana/provisioning
-    command:
-      - sh
-      - -c
-      - |
-        download_dashboard() {
-          local id=$$1
-          local version=$$2
-          local dest=$$3
-          if [ ! -f "$$dest" ]; then
-            echo "Downloading $$url to $$dest"
-            curl -L -o "$$dest" "https://grafana.com/api/dashboards/$${id}/revisions/$${version}/download"
-            sed -i 's/$${DS_PROMETHEUS}/DS_PROMETHEUS/g' "$$dest"
-            sed -i 's/$${DS}/DS_PROMETHEUS/g' "$$dest"
-            sed -i 's/$${DS_NATS-PROMETHEUS}/DS_PROMETHEUS/g' "$$dest"
-            sed -iE 's/now-[0-9]+[mh]/now-1h/g' "$$dest" # all dashboards with 1 hour time range
-            sed -i 's/now\/d/now-1h/g' "$$dest" # all dashboards with 1 hour time range
-          else
-            echo "File $$dest already exists, skipping download."
-          fi
-        }
-        mkdir -p /dashboards/imported/nats
-        mkdir -p /dashboards/imported/rocketchat
-        mkdir -p /dashboards/imported/mongodb
-        mkdir -p /dashboards/imported/prometheus
-        
-        # Download recommended dashboards
-        download_dashboard 2 latest /dashboards/imported/prometheus/prometheus-stats.json
-        download_dashboard 1860 latest /dashboards/imported/prometheus/node-exporter-full.json
-        download_dashboard 23428 latest /dashboards/imported/rocketchat/rocketchat-metrics.json
-        download_dashboard 2279 latest /dashboards/imported/nats/nats-server.json
-        download_dashboard 23712 latest /dashboards/imported/mongodb/mongodb-exporter.json
-
-        cat <<EOF > /etc/grafana/provisioning/dashboards/dashboard.yml
-        apiVersion: 1
-        providers:
-          - name: 'default'
-            orgId: 1
-            folder: ''
-            type: file
-            disableDeletion: true
-            updateIntervalSeconds: 30
-            allowUiUpdates: false
-            options:
-              path: /var/lib/grafana/dashboards
-              foldersFromFilesStructure: true
-        EOF
-
-        cat <<EOF > /etc/grafana/provisioning/datasources/datasource.yml
-        apiVersion: 1
-        datasources:
-          - name: Prometheus
-            type: prometheus
-            access: proxy
-            url: http://prometheus:9090
-            isDefault: true
-            editable: false
-            uid: DS_PROMETHEUS
-        EOF
-
-
   grafana:
-    profiles: [monitoring]
-    depends_on:
-      grafana-init:
-        condition: service_completed_successfully
     image: docker.io/grafana/grafana:${GRAFANA_VERSION:-12.0.2}
     restart: always
     expose:
       - 3000
     volumes:
       - grafana_data:/var/lib/grafana
-      - grafana_dashboards:/var/lib/grafana/dashboards
-      - grafana_provisioning:/etc/grafana/provisioning
+      - ./files/grafana/dashboards:/dashboards:rw
+      - ./files/grafana/provisioning/:/etc/grafana/provisioning:rw
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-rc-admin}
       - GF_AUTH_ANONYMOUS_ENABLED=false
@@ -229,9 +61,8 @@ services:
     labels:
       prometheus.io/scrape: "true"
       prometheus.io/port: 3000
+
 volumes:
   prometheus_tsdb: { driver: local }
   prometheus_config: { driver: local }
   grafana_data: { driver: local }
-  grafana_dashboards: { driver: local }
-  grafana_provisioning: { driver: local }

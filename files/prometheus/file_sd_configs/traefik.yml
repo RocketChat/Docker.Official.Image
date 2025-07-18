@@ -1,0 +1,5 @@
+- targets:
+    - traefik:9096
+  labels:
+    job: traefik
+    service: traefik

@@ -1,0 +1,33 @@
+entrypoints:
+  https:
+    address: ":443"
+    http:
+      redirections:
+        entryPoint:
+          to: "http"
+          scheme: "https"
+http:
+  routers:
+    rocketchat:
+      entryPoints:
+        - https
+      service: rocketchat
+      rule: "Host(`${DOMAIN}`)"
+      tls:
+        certResolver: le
+    grafana:
+      entryPoints:
+        - https
+      rule: "Host(`${GRAFANA_DOMAIN}`)"
+      service: grafana
+      tls:
+        certResolver: le
+  services:
+    rocketchat:
+      loadBalancer:
+        servers:
+          - url: "http://rocketchat:3000"
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"

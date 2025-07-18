@@ -1,6 +1,5 @@
 services:
   mongodb:
-    profiles: [mongodb]
     image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-6.0}
     restart: always
     volumes:
@@ -24,7 +23,6 @@ services:
       - ${MONGODB_PORT_NUMBER:-27017}
 
   mongodb-exporter:
-    profiles: [mongodb-exporter]
     image: docker.io/percona/mongodb_exporter:${MONGODB_EXPORTER_VERSION:-0.44.0}
     depends_on:
       - mongodb
@@ -34,9 +32,6 @@ services:
       - --mongodb.uri=${MONGODB_URI:-mongodb://mongodb:27017}
       - --collect-all
       - --compatible-mode
-    labels:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: 9216
 
 volumes:
   mongodb_data: { driver: local }

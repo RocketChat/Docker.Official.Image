@@ -1,0 +1,21 @@
+http:
+  routers:
+    rocketchat:
+      entryPoints:
+        - http
+      service: rocketchat
+      rule: "Host(`${DOMAIN}`)"
+    grafana:
+      entryPoints:
+        - http
+      rule: "Host(`${GRAFANA_DOMAIN}`)"
+      service: grafana
+  services:
+    rocketchat:
+      loadBalancer:
+        servers:
+          - url: "http://rocketchat:3000"
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
