@@ -10,7 +10,7 @@ services:
       - --web.listen-address=:9090
       - --storage.tsdb.path=/prometheus/data
       - --config.auto-reload-interval=30s
-      - --auto-gomaxprocs	
+      - --auto-gomaxprocs
       - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-15GB} # this full docker compose should use around 100MB per day for 30s scrape interval
       - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-15d}
     expose:
