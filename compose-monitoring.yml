@@ -1,0 +1,68 @@
+services:
+  prometheus:
+    image: docker.io/prom/prometheus:${PROMETHEUS_VERSION:-v3.4.2}
+    restart: always
+    user: root
+    command:
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-lifecycle
+      - --web.listen-address=:9090
+      - --storage.tsdb.path=/prometheus/data
+      - --config.auto-reload-interval=30s
+      - --auto-gomaxprocs
+      - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-15GB} # this full docker compose should use around 100MB per day for 30s scrape interval
+      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION_TIME:-15d}
+    expose:
+      - 9090
+    ports:
+      - ${PROMETHEUS_LISTEN_ADDR:-127.0.0.1}:${PROMETHEUS_PORT:-9090}:9090
+    volumes:
+      - prometheus_tsdb:/prometheus
+      - ./files/prometheus:/etc/prometheus:Z
+    # healthcheck:
+    #   test: ["CMD", "nc", "-zv", "-w", "10", "localhost", "9090"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 10
+    #   start_period: 10s
+
+  node-exporter:
+    image: docker.io/prom/node-exporter:${NODE_EXPORTER_VERSION:-v1.9.1}
+    restart: always
+    privileged: true # Required for accessing host metrics
+    network_mode: host # Allows Node Exporter to access host network interfaces directly
+    pid: host # Allows Node Exporter to access host process information
+    volumes:
+      - /sys:/host/sys:ro      # Mounts the /sys filesystem for system metrics
+      - /proc:/host/proc:ro    # Mounts the /proc filesystem for process metrics
+      - /dev:/host/dev:ro      # Mounts the /dev filesystem for device metrics
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    expose:
+      - 9100
+  
+  grafana:
+    image: docker.io/grafana/grafana:${GRAFANA_VERSION:-12.0.2}
+    restart: always
+    expose:
+      - 3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./files/grafana/dashboards:/dashboards:Z
+      - ./files/grafana/provisioning/:/etc/grafana/provisioning:Z
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-rc-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_ANONYMOUS_ORG_NAME=Main Org.
+    labels:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: 3000
+
+volumes:
+  prometheus_tsdb: { driver: local }
+  prometheus_config: { driver: local }
+  grafana_data: { driver: local }

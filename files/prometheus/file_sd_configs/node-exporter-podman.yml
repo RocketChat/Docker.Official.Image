@@ -1,0 +1,5 @@
+- targets:
+    - host.containers.internal:9100
+  labels:
+    job: node-exporter
+    service: node-exporter

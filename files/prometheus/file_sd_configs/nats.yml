@@ -1,0 +1,5 @@
+- targets:
+    - nats-exporter:7777
+  labels:
+    job: nats
+    service: nats

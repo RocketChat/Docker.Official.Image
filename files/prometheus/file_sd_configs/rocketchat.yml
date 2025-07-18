@@ -1,0 +1,5 @@
+- targets:
+    - rocketchat:9458
+  labels:
+    job: rocketchat
+    service: rocketchat
