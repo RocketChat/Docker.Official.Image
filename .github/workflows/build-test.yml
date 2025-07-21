@@ -89,7 +89,7 @@ jobs:
           version="$(echo ${{matrix.version}} | cut -d. -f 1,2 --output-delimiter=- )"
           port="$(echo ${{matrix.version}} | cut -d. -f 1,2 --output-delimiter= )" # 7.1 becames 71
           cp .env.example .env
-          docker compose -f compose.yml -f compose-mongodb.yml up -d
+          docker compose -f compose.yml up -d
 
 
       - name: Wait for Rocket.Chat to start up
@@ -102,14 +102,14 @@ jobs:
 
       - name: Remove containers
         run: |
-          docker compose -f compose.yml -f compose-mongodb.yml down
+          docker compose -f compose.yml down
 
       - name: Show logs if failed
         if: failure()
         run: |
           echo "Latest logs"
-          docker compose -f compose.yml -f compose-mongodb.yml logs rocketchat
-          docker compose -f compose.yml -f compose-mongodb.yml down
+          docker compose -f compose.yml logs rocketchat
+          docker compose -f compose.yml down
           echo "-----------------------"
           echo "Used .env"
           cat .env

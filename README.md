@@ -46,7 +46,6 @@ For deploying the recommended stack with Rocket.Chat, Traefik, MongoDB, NATS, an
    - With Docker Compose:
      ```bash
      docker compose \
-       -f compose-mongodb.yml \
        -f compose-monitoring.yml \
        -f compose-traefik.yml \
        -f compose.yml \
@@ -55,7 +54,6 @@ For deploying the recommended stack with Rocket.Chat, Traefik, MongoDB, NATS, an
    - Or with Podman Compose:
      ```bash
      podman compose \
-       -f compose-mongodb.yml \
        -f compose-monitoring.yml \
        -f compose-traefik.yml \
        -f compose.yml \
@@ -68,7 +66,6 @@ For deploying the recommended stack with Rocket.Chat, Traefik, MongoDB, NATS, an
 3. **Stop the stack:**
    ```bash
    podman compose \
-     -f compose-mongodb.yml \
      -f compose-monitoring.yml \
      -f compose-traefik.yml \
      -f compose.yml \
