@@ -11,6 +11,7 @@ services:
       traefik.http.routers.rocketchat.tls: "true"
       traefik.http.routers.rocketchat.entrypoints: https
       traefik.http.routers.rocketchat.tls.certresolver: le
+      DEPRECATED_COMPOSE: "${DEPRECATED_COMPOSE_ACK:?This compose is deprecated please refer to }"
     environment:
       MONGO_URL: mongodb://mongodb:27017/rocketchat?replicaSet=rs0
       ROOT_URL: ${ROOT_URL:-http://localhost:3000}
