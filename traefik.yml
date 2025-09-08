@@ -7,6 +7,8 @@ services:
   traefik:
     image: docker.io/traefik:${TRAEFIK_RELEASE:-v2.9.8}
     restart: always
+    labels:
+      DEPRECATED_COMPOSE: "${DEPRECATED_COMPOSE_ACK:?This compose file is deprecated, please migrate to https://github.com/RocketChat/rocketchat-compose}"
     command:
      - --api.insecure=false
      - --providers.docker=true

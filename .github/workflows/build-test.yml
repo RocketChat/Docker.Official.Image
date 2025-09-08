@@ -85,6 +85,7 @@ jobs:
         env:
           IMAGE: rocket.chat
           RELEASE: ${{ matrix.version }}
+          DEPRECATED_COMPOSE_ACK: "true"
         run: docker compose up -d
 
       - name: Wait for Rocket.Chat to start up
