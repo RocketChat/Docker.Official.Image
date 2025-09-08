@@ -85,7 +85,7 @@ jobs:
         env:
           IMAGE: rocket.chat
           RELEASE: ${{ matrix.version }}
-        run: docker compose up -d
+        run: docker compose up -e DEPRECATED_COMPOSE_ACK=1 -d
 
       - name: Wait for Rocket.Chat to start up
         uses: cygnetdigital/wait_for_response@v2.0.0
