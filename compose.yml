@@ -27,7 +27,7 @@ services:
       - "${BIND_IP:-0.0.0.0}:${HOST_PORT:-3000}:${PORT:-3000}"
 
   mongodb:
-    image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-6.0}
+    image: docker.io/bitnamilegacy/mongodb:${MONGODB_VERSION:-6.0}
     restart: always
     volumes:
       - ${MONGODB_HOST_PATH:-mongodb_data}:/bitnami/mongodb
