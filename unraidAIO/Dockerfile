@@ -63,7 +63,6 @@ RUN curl -L https://releases.rocket.chat/latest/download \
     -o rocket.chat.tgz && \
     tar -xzf rocket.chat.tgz && \
     rm rocket.chat.tgz && \
-    mv bundle /app/bundle
 
 # Install server-side node modules
 WORKDIR /app/bundle/programs/server
