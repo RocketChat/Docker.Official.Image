@@ -1,0 +1,5 @@
+#!/bin/bash
+exec mongod \
+  --dbpath /data/db \
+  --bind_ip 127.0.0.1 \
+  --journal
