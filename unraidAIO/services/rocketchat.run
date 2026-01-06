@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /app/bundle
+exec chpst -u rocketchat:rocketchat node main.js
