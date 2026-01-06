@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Node.js 22.x (REQUIRED by Rocket.Chat 7.13+)
+# Node.js 22.x (UPGRADED FROM WORKING FILE)
 # ------------------------------------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get update && \
@@ -28,21 +28,20 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
 
 # ------------------------------------------------------------
 # MongoDB Community Edition 7.0
+# IMPORTANT: noble has NO mongo repo → use jammy (REQUIRED)
 # ------------------------------------------------------------
 RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
       gpg --dearmor -o /etc/apt/keyrings/mongodb-server-7.0.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/mongodb-server-7.0.gpg] \
-      https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/7.0 multiverse" \
+      https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" \
       > /etc/apt/sources.list.d/mongodb-org-7.0.list && \
     apt-get update && \
     apt-get install -y mongodb-org && \
     rm -rf /var/lib/apt/lists/*
 
-VOLUME ["/var/lib/mongodb"]
-
 # ------------------------------------------------------------
-# Rocket.Chat bundle (OFFICIAL prebuilt)
+# Rocket.Chat bundle (OFFICIAL PREBUILT)
 # ------------------------------------------------------------
 WORKDIR /app
 
@@ -58,7 +57,10 @@ RUN npm install --omit=dev
 # Runtime user
 # ------------------------------------------------------------
 RUN useradd -r -u 999 -g nogroup rocketchat && \
-    chown -R rocketchat:nogroup /app /var/lib/mongodb
+    mkdir -p /var/lib/mongodb /var/log/mongodb && \
+    chown -R rocketchat:nogroup /app /var/lib/mongodb /var/log/mongodb
+
+VOLUME ["/var/lib/mongodb"]
 
 # ------------------------------------------------------------
 # Entrypoint
