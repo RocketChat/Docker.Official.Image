@@ -1,11 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-# Ensure data dir exists and is writable
 mkdir -p /var/lib/mongodb
 chown -R rocketchat:nogroup /var/lib/mongodb || true
 
-# Run MongoDB locally only (AIO)
 exec mongod \
   --dbpath /var/lib/mongodb \
   --bind_ip 127.0.0.1 \
