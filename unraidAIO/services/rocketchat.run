@@ -1,3 +1,17 @@
 #!/bin/bash
+set -euo pipefail
+
+# Wait for MongoDB to be reachable before starting Rocket.Chat
+# (prevents first-boot race conditions)
+for i in {1..60}; do
+  if nc -z 127.0.0.1 27017 >/dev/null 2>&1; then
+    break
+  fi
+  echo "Waiting for MongoDB... ($i/60)"
+  sleep 1
+done
+
 cd /app/bundle
-exec chpst -u rocketchat:rocketchat node main.js
+
+# Run as non-root user
+exec chpst -u rocketchat:nogroup node main.js
