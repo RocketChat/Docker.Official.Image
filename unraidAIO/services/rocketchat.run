@@ -1,14 +1,20 @@
 #!/bin/bash
 set -euo pipefail
 
-# Wait for MongoDB primary
-for i in {1..60}; do
-  if mongosh --quiet --eval 'db.isMaster().ismaster' | grep -q true; then
+# Wait for MongoDB PRIMARY
+for i in {1..90}; do
+  if mongosh --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; then
     break
   fi
-  echo "Waiting for MongoDB primary ($i/60)"
+  echo "Waiting for MongoDB PRIMARY ($i/90)"
   sleep 1
 done
 
 cd /app/bundle
-exec chpst -u rocketchat:nogroup node main.js
+
+# IMPORTANT:
+# exec keeps process in foreground so runit can supervise it
+exec chpst -u rocketchat:nogroup \
+  env ROOT_URL="${ROOT_URL}" PORT="${PORT}" \
+  node main.js
+
