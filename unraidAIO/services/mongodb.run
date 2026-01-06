@@ -1,13 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-mkdir -p /var/lib/mongodb
-chown -R rocketchat:nogroup /var/lib/mongodb || true
+DBPATH=/var/lib/mongodb
+REPLSET=rs01
 
-# MongoDB 7.x does not accept --journal as a CLI option.
-# Journaling is enabled by default; no flag needed.
+mkdir -p "$DBPATH"
+chown -R rocketchat:nogroup "$DBPATH" || true
+
 exec mongod \
-  --dbpath /var/lib/mongodb \
+  --dbpath "$DBPATH" \
   --bind_ip 127.0.0.1 \
   --port 27017 \
-  --replSet rs01
+  --replSet "$REPLSET"
