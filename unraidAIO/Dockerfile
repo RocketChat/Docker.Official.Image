@@ -1,11 +1,10 @@
 FROM phusion/baseimage:noble-1.0.2
 
-# Fail hard, predictable shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
 
 # ------------------------------------------------------------
-# Rocket.Chat official runtime expectations
+# Rocket.Chat runtime expectations
 # ------------------------------------------------------------
 ENV NODE_ENV=production \
     PORT=3000 \
@@ -16,7 +15,7 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=4096"
 
 # ------------------------------------------------------------
-# Base OS packages
+# Base OS packages + MongoDB (Ubuntu-native)
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     curl \
@@ -26,21 +25,11 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     wget \
+    mongodb-server \
     && rm -rf /var/lib/apt/lists/*
 
-# ------------------------------------------------------------
-# MongoDB 6.0 (official repo)
-# ------------------------------------------------------------
-RUN curl -fsSL https://pgp.mongodb.com/server-6.0.asc | \
-    gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg] \
-    https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/6.0 multiverse" \
-    > /etc/apt/sources.list.d/mongodb-org-6.0.list && \
-    apt-get update && apt-get install -y mongodb-org && \
-    rm -rf /var/lib/apt/lists/*
-
-# Mongo persistent data
-VOLUME ["/data/db"]
+# MongoDB persistent storage (Ubuntu default)
+VOLUME ["/var/lib/mongodb"]
 
 # ------------------------------------------------------------
 # Node.js (match official Rocket.Chat image)
@@ -64,13 +53,13 @@ WORKDIR /app/bundle/programs/server
 RUN npm install --omit=dev
 
 # ------------------------------------------------------------
-# Rocket.Chat runtime user (matches official behavior)
+# Rocket.Chat runtime user
 # ------------------------------------------------------------
 RUN useradd -r -u 999 rocketchat && \
-    chown -R rocketchat:rocketchat /app /data
+    chown -R rocketchat:rocketchat /app /var/lib/mongodb
 
 # ------------------------------------------------------------
-# runit services (from unraidAIO/services/)
+# runit services
 # ------------------------------------------------------------
 RUN mkdir -p /etc/service/mongodb /etc/service/rocketchat
 
