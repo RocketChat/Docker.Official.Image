@@ -15,7 +15,7 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=4096"
 
 # ------------------------------------------------------------
-# Base OS packages + MongoDB (Ubuntu-native)
+# Base OS packages
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     curl \
@@ -25,38 +25,56 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     wget \
-    mongodb-server \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# MongoDB persistent storage (Ubuntu default)
+# ------------------------------------------------------------
+# MongoDB Community Edition (mongodb-org) 7.0
+# IMPORTANT: MongoDB does not publish a noble repo yet.
+# Use jammy repo on noble (common container practice).
+# ------------------------------------------------------------
+RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
+      gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg && \
+    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] \
+      https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" \
+      > /etc/apt/sources.list.d/mongodb-org-7.0.list && \
+    apt-get update && \
+    apt-get install -y mongodb-org && \
+    rm -rf /var/lib/apt/lists/*
+
+# MongoDB persistent storage
 VOLUME ["/var/lib/mongodb"]
 
 # ------------------------------------------------------------
-# Node.js (match official Rocket.Chat image)
+# Node.js 20 (matches Rocket.Chat official image major)
 # ------------------------------------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    node -v && npm -v
+    apt-get update && apt-get install -y nodejs && \
+    node -v && npm -v && \
+    rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
 # Rocket.Chat bundle (official layout)
 # ------------------------------------------------------------
 WORKDIR /app
 
+# Download latest Rocket.Chat bundle (you can pin this later)
 RUN curl -L https://releases.rocket.chat/latest/download \
     -o rocket.chat.tgz && \
     tar -xzf rocket.chat.tgz && \
     rm rocket.chat.tgz && \
     mv bundle /app/bundle
 
+# Install server-side node modules
 WORKDIR /app/bundle/programs/server
 RUN npm install --omit=dev
 
 # ------------------------------------------------------------
 # Rocket.Chat runtime user
 # ------------------------------------------------------------
-RUN useradd -r -u 999 rocketchat && \
-    chown -R rocketchat:rocketchat /app /var/lib/mongodb
+RUN useradd -r -u 999 -g nogroup rocketchat && \
+    mkdir -p /var/lib/mongodb && \
+    chown -R rocketchat:nogroup /app /var/lib/mongodb
 
 # ------------------------------------------------------------
 # runit services
