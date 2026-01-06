@@ -4,14 +4,14 @@ set -euo pipefail
 REPLSET=rs01
 
 # Wait for MongoDB
-for i in {1..30}; do
+for i in {1..60}; do
   if mongosh --quiet --eval 'db.runCommand({ ping: 1 })' >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
 
-# If already initialized, exit cleanly
+# Init replica set once
 if mongosh --quiet --eval 'rs.status().ok' >/dev/null 2>&1; then
   exit 0
 fi
@@ -21,8 +21,6 @@ echo "Initializing MongoDB replica set..."
 mongosh --quiet <<EOF
 rs.initiate({
   _id: "$REPLSET",
-  members: [
-    { _id: 0, host: "127.0.0.1:27017" }
-  ]
+  members: [{ _id: 0, host: "127.0.0.1:27017" }]
 })
 EOF
