@@ -1,11 +1,11 @@
 FROM phusion/baseimage:noble-1.0.2
 
+# ------------------------------------------------------------
+# Shell + environment
+# ------------------------------------------------------------
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
 
-# ------------------------------------------------------------
-# Rocket.Chat runtime expectations
-# ------------------------------------------------------------
 ENV NODE_ENV=production \
     PORT=3000 \
     ROOT_URL=http://localhost:3000 \
@@ -15,7 +15,7 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=4096"
 
 # ------------------------------------------------------------
-# Base OS packages
+# Base packages
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     curl \
@@ -29,47 +29,46 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# MongoDB Community Edition (mongodb-org) 7.0
-# IMPORTANT: MongoDB does not publish a noble repo yet.
-# Use jammy repo on noble (common container practice).
+# MongoDB Community Edition 7.0 (jammy repo on noble)
 # ------------------------------------------------------------
 RUN curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
-      gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg && \
-    echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] \
-      https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" \
-      > /etc/apt/sources.list.d/mongodb-org-7.0.list && \
+        gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] \
+        https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" \
+        > /etc/apt/sources.list.d/mongodb-org-7.0.list && \
     apt-get update && \
     apt-get install -y mongodb-org && \
     rm -rf /var/lib/apt/lists/*
 
-# MongoDB persistent storage
 VOLUME ["/var/lib/mongodb"]
 
 # ------------------------------------------------------------
-# Node.js 20 (matches Rocket.Chat official image major)
+# Node.js 20
 # ------------------------------------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get update && apt-get install -y nodejs && \
+    apt-get update && \
+    apt-get install -y nodejs && \
     node -v && npm -v && \
     rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Rocket.Chat bundle (official layout)
+# Rocket.Chat bundle
 # ------------------------------------------------------------
 WORKDIR /app
 
-# Download latest Rocket.Chat bundle (you can pin this later)
 RUN curl -L https://releases.rocket.chat/latest/download \
-    -o rocket.chat.tgz && \
+      -o rocket.chat.tgz && \
     tar -xzf rocket.chat.tgz && \
-    rm rocket.chat.tgz && \
+    rm rocket.chat.tgz
 
-# Install server-side node modules
+# ------------------------------------------------------------
+# Install Rocket.Chat server dependencies
+# ------------------------------------------------------------
 WORKDIR /app/bundle/programs/server
 RUN npm install --omit=dev
 
 # ------------------------------------------------------------
-# Rocket.Chat runtime user
+# Runtime user
 # ------------------------------------------------------------
 RUN useradd -r -u 999 -g nogroup rocketchat && \
     mkdir -p /var/lib/mongodb && \
