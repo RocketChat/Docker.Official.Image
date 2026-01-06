@@ -4,8 +4,10 @@ set -euo pipefail
 mkdir -p /var/lib/mongodb
 chown -R rocketchat:nogroup /var/lib/mongodb || true
 
+# MongoDB 7.x does not accept --journal as a CLI option.
+# Journaling is enabled by default; no flag needed.
 exec mongod \
   --dbpath /var/lib/mongodb \
   --bind_ip 127.0.0.1 \
   --port 27017 \
-  --journal
+  --replSet rs01
