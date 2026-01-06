@@ -1,10 +1,11 @@
 FROM phusion/baseimage:noble-1.0.2
 
+# Fail hard, predictable shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV DEBIAN_FRONTEND=noninteractive
 
 # ------------------------------------------------------------
-# Rocket.Chat expected runtime variables (official defaults)
+# Rocket.Chat official runtime expectations
 # ------------------------------------------------------------
 ENV NODE_ENV=production \
     PORT=3000 \
@@ -15,7 +16,7 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=4096"
 
 # ------------------------------------------------------------
-# Base dependencies
+# Base OS packages
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     curl \
@@ -38,18 +39,18 @@ RUN curl -fsSL https://pgp.mongodb.com/server-6.0.asc | \
     apt-get update && apt-get install -y mongodb-org && \
     rm -rf /var/lib/apt/lists/*
 
+# Mongo persistent data
 VOLUME ["/data/db"]
 
 # ------------------------------------------------------------
-# Node.js (match official image major version)
-# Rocket.Chat 7.x expects Node 20
+# Node.js (match official Rocket.Chat image)
 # ------------------------------------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     node -v && npm -v
 
 # ------------------------------------------------------------
-# Rocket.Chat bundle (official method)
+# Rocket.Chat bundle (official layout)
 # ------------------------------------------------------------
 WORKDIR /app
 
@@ -63,18 +64,18 @@ WORKDIR /app/bundle/programs/server
 RUN npm install --omit=dev
 
 # ------------------------------------------------------------
-# Non-root user (official behavior)
+# Rocket.Chat runtime user (matches official behavior)
 # ------------------------------------------------------------
 RUN useradd -r -u 999 rocketchat && \
     chown -R rocketchat:rocketchat /app /data
 
 # ------------------------------------------------------------
-# runit services
+# runit services (from unraidAIO/services/)
 # ------------------------------------------------------------
 RUN mkdir -p /etc/service/mongodb /etc/service/rocketchat
 
-COPY mongodb.run /etc/service/mongodb/run
-COPY rocketchat.run /etc/service/rocketchat/run
+COPY services/mongodb.run /etc/service/mongodb/run
+COPY services/rocketchat.run /etc/service/rocketchat/run
 
 RUN chmod +x /etc/service/*/run
 
