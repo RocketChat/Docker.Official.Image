@@ -46,6 +46,7 @@ You will be greeted by the Rocket.Chat setup wizard.
 - Fully compatible with Unraid, Docker bridge, and macvlan/ipvlan
 
 ## Example Runtime Output
+```text
 +--------------------------------------------------+
 |                  SERVER RUNNING                  |
 +--------------------------------------------------+
@@ -62,3 +63,4 @@ You will be greeted by the Rocket.Chat setup wizard.
 |        Commit Branch: HEAD                       |
 |                                                  |
 +--------------------------------------------------+
+```
