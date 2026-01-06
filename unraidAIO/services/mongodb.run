@@ -5,7 +5,7 @@ DBPATH=/var/lib/mongodb
 REPLSET=rs01
 
 mkdir -p "$DBPATH"
-chown -R rocketchat:nogroup "$DBPATH" || true
+chown -R rocketchat:rocketchat "$DBPATH" || true
 
 exec mongod \
   --dbpath "$DBPATH" \
