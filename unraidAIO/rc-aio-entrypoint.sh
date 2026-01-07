@@ -3,18 +3,10 @@ set -euo pipefail
 
 # ============================================================
 # Rocket.Chat AIO Entrypoint
-#
-# Responsibilities:
-#  - Start MongoDB safely inside Docker (foreground-style)
-#  - Initialize a single-node replica set ONCE
-#  - Survive container restarts without damaging MongoDB
-#  - Emit persistent debug state for post-mortem inspection
-#  - Launch Rocket.Chat with explicit, known-good env
 # ============================================================
 
-
 # ------------------------------------------------------------
-# Environment defaults (can be overridden by Docker env)
+# Environment defaults (override via Docker / Unraid template)
 # ------------------------------------------------------------
 : "${MONGO_HOST:=127.0.0.1}"
 : "${MONGO_PORT:=27017}"
@@ -22,11 +14,12 @@ set -euo pipefail
 : "${MONGO_RS:=rs01}"
 : "${PORT:=3000}"
 : "${ROOT_URL:=http://localhost:3000}"
+: "${MAIL_URL:=smtp://127.0.0.1:25}"
 
 export BIND_IP="0.0.0.0"
 export MONGO_URL="mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}?replicaSet=${MONGO_RS}"
 export MONGO_OPLOG_URL="mongodb://${MONGO_HOST}:${MONGO_PORT}/local?replicaSet=${MONGO_RS}"
-
+export MAIL_URL
 
 # ------------------------------------------------------------
 # Filesystem layout
@@ -37,19 +30,17 @@ LOGPATH="${LOGDIR}/mongod.log"
 DEBUGDIR="${DBPATH}/dbdebug"
 MARKER="${DBPATH}/.rs-initialized"
 
-
 # ------------------------------------------------------------
 # Prepare persistent directories
 # ------------------------------------------------------------
 mkdir -p "${DBPATH}" "${LOGDIR}" "${DEBUGDIR}"
 
-# IMPORTANT:
-# Dockerfile creates user: rocketchat
-# Group is *nogroup* (do NOT assume rocketchat group exists)
+# Dockerfile creates:
+#   user  = rocketchat
+#   group = nogroup
 chown -R rocketchat:nogroup \
   "${DBPATH}" \
   "${LOGDIR}"
-
 
 # ------------------------------------------------------------
 # Persist startup environment for debugging
@@ -64,12 +55,18 @@ chown -R rocketchat:nogroup \
   echo "MONGO_RS=${MONGO_RS}"
   echo "PORT=${PORT}"
   echo "ROOT_URL=${ROOT_URL}"
+  echo "MAIL_URL=${MAIL_URL}"
   echo "MONGO_URL=${MONGO_URL}"
   echo "MONGO_OPLOG_URL=${MONGO_OPLOG_URL}"
 } > "${DEBUGDIR}/env.txt"
 
 echo "STARTUP $(date)" >> "${DEBUGDIR}/state.txt"
 
+# ------------------------------------------------------------
+# Start Postfix (local SMTP)
+# ------------------------------------------------------------
+echo "[AIO] Starting Postfix..."
+service postfix start
 
 # ------------------------------------------------------------
 # Start MongoDB (no --fork; Docker supervises lifecycle)
@@ -90,7 +87,6 @@ MONGO_PID=$!
 echo "${MONGO_PID}" > "${DEBUGDIR}/mongo.pid"
 echo "Mongo PID=${MONGO_PID}" >> "${DEBUGDIR}/state.txt"
 
-
 # ------------------------------------------------------------
 # Wait until MongoDB accepts connections
 # ------------------------------------------------------------
@@ -104,14 +100,12 @@ for i in {1..60}; do
   sleep 1
 done
 
-
 # ------------------------------------------------------------
 # Replica set initialization (runs ONCE only)
 # ------------------------------------------------------------
 if [ ! -f "${MARKER}" ]; then
   echo "[AIO] Initializing MongoDB replica set..."
 
-  # rs.initiate may error harmlessly if already partially configured
   mongosh --quiet <<EOF >> "${DEBUGDIR}/rs-init.log" 2>&1 || true
 rs.initiate({
   _id: "${MONGO_RS}",
@@ -119,7 +113,6 @@ rs.initiate({
 })
 EOF
 
-  # Wait until PRIMARY is elected
   for i in {1..60}; do
     if mongosh --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; then
       echo "Replica PRIMARY elected at $(date)" >> "${DEBUGDIR}/rs-init.log"
@@ -135,7 +128,6 @@ else
   echo "Replica set already initialized" >> "${DEBUGDIR}/state.txt"
 fi
 
-
 # ------------------------------------------------------------
 # Final readiness gate (must be PRIMARY)
 # ------------------------------------------------------------
@@ -146,7 +138,6 @@ for i in {1..60}; do
   fi
   sleep 1
 done
-
 
 # ------------------------------------------------------------
 # Launch Rocket.Chat
@@ -161,6 +152,7 @@ exec gosu rocketchat \
     PORT="${PORT}" \
     ROOT_URL="${ROOT_URL}" \
     BIND_IP="${BIND_IP}" \
+    MAIL_URL="${MAIL_URL}" \
     MONGO_URL="${MONGO_URL}" \
     MONGO_OPLOG_URL="${MONGO_OPLOG_URL}" \
   node main.js
