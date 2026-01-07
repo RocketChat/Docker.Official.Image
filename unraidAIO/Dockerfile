@@ -18,12 +18,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Node.js 22.x + npm 11.x (explicit)
+# Node.js 22.x (DO NOT FORCE npm yet)
 # ------------------------------------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get update && \
     apt-get install -y nodejs && \
-    npm install -g npm@11 && \
     node -v && npm -v && \
     rm -rf /var/lib/apt/lists/*
 
