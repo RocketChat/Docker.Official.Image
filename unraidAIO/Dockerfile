@@ -21,10 +21,17 @@ ENV NODE_ENV=production \
     MONGO_DB=rocketchat \
     MONGO_RS=rs01 \
     HOME=/app \
-    METEOR_DISABLE_OPTIMISTIC_CACHING=1
+    METEOR_DISABLE_OPTIMISTIC_CACHING=1 \
+    MAIL_URL=smtp://127.0.0.1:25
 
 # ------------------------------------------------------------
-# Base packages + Ubuntu guide deps
+# Preseed Postfix (NON-INTERACTIVE, LOCAL ONLY)
+# ------------------------------------------------------------
+RUN echo "postfix postfix/mailname string localhost" | debconf-set-selections && \
+    echo "postfix postfix/main_mailer_type string 'Local only'" | debconf-set-selections
+
+# ------------------------------------------------------------
+# Base packages + Ubuntu guide deps + SMTP
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -39,6 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fontconfig \
     graphicsmagick \
     mc \
+    postfix \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
@@ -80,7 +88,7 @@ RUN mkdir -p /etc/apt/keyrings && \
     rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# User (NO GROUP — uses nogroup by design)
+# User (NO GROUP — uses nogroup)
 # ------------------------------------------------------------
 RUN useradd -r -M -d /app -s /usr/sbin/nologin rocketchat
 
@@ -101,7 +109,7 @@ RUN npm install --unsafe-perm=true --omit=dev --no-audit --no-fund && \
     npm cache clear --force
 
 # ------------------------------------------------------------
-# Filesystem layout (MATCHES ENTRY SCRIPT)
+# Filesystem layout
 # ------------------------------------------------------------
 RUN mkdir -p \
       /app/uploads \
