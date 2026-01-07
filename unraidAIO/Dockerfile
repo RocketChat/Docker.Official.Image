@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Node.js 22.x (DO NOT FORCE npm yet)
+# Node.js 22.x (keep bundled npm — DO NOT upgrade npm)
 # ------------------------------------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get update && \
@@ -54,12 +54,11 @@ WORKDIR /app/bundle/programs/server
 RUN npm install --omit=dev
 
 # ------------------------------------------------------------
-# Runtime user + group (EXPLICIT, FIXED)
+# Runtime user (CORRECT: reuse existing nogroup)
 # ------------------------------------------------------------
-RUN groupadd -r -g 999 rocketchat && \
-    useradd  -r -u 999 -g rocketchat -d /app rocketchat && \
+RUN useradd -r -u 999 -g nogroup -d /app rocketchat && \
     mkdir -p /var/lib/mongodb /var/log/mongodb && \
-    chown -R rocketchat:rocketchat \
+    chown -R rocketchat:nogroup \
       /app \
       /var/lib/mongodb \
       /var/log/mongodb
