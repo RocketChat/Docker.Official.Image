@@ -2,16 +2,19 @@
 set -euo pipefail
 
 # ============================================================
-# Rocket.Chat AIO – MongoDB + Rocket.Chat Entrypoint
+# Rocket.Chat AIO Entrypoint
 #
-# - Runs MongoDB in foreground (Docker-safe)
-# - Initializes replica set ONCE
-# - Survives Docker restarts cleanly
-# - Writes persistent debug state to disk
+# Responsibilities:
+#  - Start MongoDB safely inside Docker (foreground-style)
+#  - Initialize a single-node replica set ONCE
+#  - Survive container restarts without damaging MongoDB
+#  - Emit persistent debug state for post-mortem inspection
+#  - Launch Rocket.Chat with explicit, known-good env
 # ============================================================
 
+
 # ------------------------------------------------------------
-# Environment defaults
+# Environment defaults (can be overridden by Docker env)
 # ------------------------------------------------------------
 : "${MONGO_HOST:=127.0.0.1}"
 : "${MONGO_PORT:=27017}"
@@ -20,35 +23,39 @@ set -euo pipefail
 : "${PORT:=3000}"
 : "${ROOT_URL:=http://localhost:3000}"
 
+export BIND_IP="0.0.0.0"
 export MONGO_URL="mongodb://${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB}?replicaSet=${MONGO_RS}"
 export MONGO_OPLOG_URL="mongodb://${MONGO_HOST}:${MONGO_PORT}/local?replicaSet=${MONGO_RS}"
-export BIND_IP="0.0.0.0"
+
 
 # ------------------------------------------------------------
-# Paths
+# Filesystem layout
 # ------------------------------------------------------------
 DBPATH="/var/lib/mongodb"
-LOGPATH="/var/log/mongodb/mongod.log"
+LOGDIR="/var/log/mongodb"
+LOGPATH="${LOGDIR}/mongod.log"
 DEBUGDIR="${DBPATH}/dbdebug"
 MARKER="${DBPATH}/.rs-initialized"
 
-# ------------------------------------------------------------
-# Prepare filesystem (persistent + debuggable)
-# ------------------------------------------------------------
-mkdir -p \
-  "${DBPATH}" \
-  "$(dirname "${LOGPATH}")" \
-  "${DEBUGDIR}"
-
-chown -R rocketchat:rocketchat \
-  "${DBPATH}" \
-  "$(dirname "${LOGPATH}")"
 
 # ------------------------------------------------------------
-# Write startup environment snapshot (for debugging)
+# Prepare persistent directories
+# ------------------------------------------------------------
+mkdir -p "${DBPATH}" "${LOGDIR}" "${DEBUGDIR}"
+
+# IMPORTANT:
+# Dockerfile creates user: rocketchat
+# Group is *nogroup* (do NOT assume rocketchat group exists)
+chown -R rocketchat:nogroup \
+  "${DBPATH}" \
+  "${LOGDIR}"
+
+
+# ------------------------------------------------------------
+# Persist startup environment for debugging
 # ------------------------------------------------------------
 {
-  echo "=== Rocket.Chat AIO Mongo Debug ==="
+  echo "=== Rocket.Chat AIO Debug Snapshot ==="
   date
   echo
   echo "MONGO_HOST=${MONGO_HOST}"
@@ -63,11 +70,12 @@ chown -R rocketchat:rocketchat \
 
 echo "STARTUP $(date)" >> "${DEBUGDIR}/state.txt"
 
+
 # ------------------------------------------------------------
-# Start MongoDB (FOREGROUND – Docker supervises lifecycle)
+# Start MongoDB (no --fork; Docker supervises lifecycle)
 # ------------------------------------------------------------
-echo "[AIO] Starting MongoDB (foreground)..."
-echo "Starting mongod at $(date)" >> "${DEBUGDIR}/mongo-start.log"
+echo "[AIO] Starting MongoDB..."
+echo "mongod start: $(date)" >> "${DEBUGDIR}/mongo.log"
 
 gosu rocketchat mongod \
   --dbpath "${DBPATH}" \
@@ -82,29 +90,28 @@ MONGO_PID=$!
 echo "${MONGO_PID}" > "${DEBUGDIR}/mongo.pid"
 echo "Mongo PID=${MONGO_PID}" >> "${DEBUGDIR}/state.txt"
 
+
 # ------------------------------------------------------------
-# Wait for MongoDB socket (basic liveness)
+# Wait until MongoDB accepts connections
 # ------------------------------------------------------------
-echo "[AIO] Waiting for MongoDB to accept connections..."
-echo "Waiting for Mongo socket..." >> "${DEBUGDIR}/state.txt"
+echo "[AIO] Waiting for MongoDB socket..."
 
 for i in {1..60}; do
   if mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' >/dev/null 2>&1; then
-    echo "Mongo responded to ping at $(date)" >> "${DEBUGDIR}/state.txt"
+    echo "Mongo reachable at $(date)" >> "${DEBUGDIR}/state.txt"
     break
   fi
   sleep 1
 done
 
+
 # ------------------------------------------------------------
-# Initialize replica set ONCE (IDEMPOTENT + SAFE)
+# Replica set initialization (runs ONCE only)
 # ------------------------------------------------------------
 if [ ! -f "${MARKER}" ]; then
-  echo "[AIO] First-time replica set initialization..."
-  echo "Replica set init starting at $(date)" >> "${DEBUGDIR}/rs-init.log"
+  echo "[AIO] Initializing MongoDB replica set..."
 
-  # rs.initiate MAY fail harmlessly if partially initialized
-  # Never let this crash the container under `set -e`
+  # rs.initiate may error harmlessly if already partially configured
   mongosh --quiet <<EOF >> "${DEBUGDIR}/rs-init.log" 2>&1 || true
 rs.initiate({
   _id: "${MONGO_RS}",
@@ -112,10 +119,10 @@ rs.initiate({
 })
 EOF
 
-  echo "[AIO] Waiting for PRIMARY..."
+  # Wait until PRIMARY is elected
   for i in {1..60}; do
     if mongosh --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; then
-      echo "Mongo PRIMARY elected at $(date)" >> "${DEBUGDIR}/rs-init.log"
+      echo "Replica PRIMARY elected at $(date)" >> "${DEBUGDIR}/rs-init.log"
       break
     fi
     sleep 1
@@ -128,31 +135,32 @@ else
   echo "Replica set already initialized" >> "${DEBUGDIR}/state.txt"
 fi
 
-# ------------------------------------------------------------
-# Final readiness gate (Mongo must be PRIMARY)
-# ------------------------------------------------------------
-echo "Final Mongo PRIMARY check..." >> "${DEBUGDIR}/state.txt"
 
+# ------------------------------------------------------------
+# Final readiness gate (must be PRIMARY)
+# ------------------------------------------------------------
 for i in {1..60}; do
   if mongosh --quiet --eval 'db.hello().isWritablePrimary' | grep -q true; then
-    echo "Mongo confirmed PRIMARY at $(date)" >> "${DEBUGDIR}/state.txt"
+    echo "Mongo PRIMARY confirmed at $(date)" >> "${DEBUGDIR}/state.txt"
     break
   fi
   sleep 1
 done
 
+
 # ------------------------------------------------------------
-# Start Rocket.Chat (explicit env injection)
+# Launch Rocket.Chat
 # ------------------------------------------------------------
 echo "[AIO] Starting Rocket.Chat on ${BIND_IP}:${PORT} ..."
-echo "Starting Rocket.Chat at $(date)" >> "${DEBUGDIR}/state.txt"
+echo "Rocket.Chat start: $(date)" >> "${DEBUGDIR}/state.txt"
 
 cd /app/bundle
 
 exec gosu rocketchat \
-  env PORT="${PORT}" \
-      ROOT_URL="${ROOT_URL}" \
-      BIND_IP="${BIND_IP}" \
-      MONGO_URL="${MONGO_URL}" \
-      MONGO_OPLOG_URL="${MONGO_OPLOG_URL}" \
+  env \
+    PORT="${PORT}" \
+    ROOT_URL="${ROOT_URL}" \
+    BIND_IP="${BIND_IP}" \
+    MONGO_URL="${MONGO_URL}" \
+    MONGO_OPLOG_URL="${MONGO_OPLOG_URL}" \
   node main.js
