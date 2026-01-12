@@ -27,16 +27,21 @@ services:
       - "${BIND_IP:-0.0.0.0}:${HOST_PORT:-3000}:${PORT:-3000}"
 
   mongodb:
-    image: docker.io/bitnamilegacy/mongodb:${MONGODB_VERSION:-6.0}
-    restart: always
-    volumes:
-      - ${MONGODB_HOST_PATH:-mongodb_data}:/bitnami/mongodb
+    image: mongodb/mongodb-community-server:${MONGODB_VERSION:-8.2}-ubi8
+    restart: on-failure
     environment:
-      MONGODB_REPLICA_SET_MODE: primary
       MONGODB_REPLICA_SET_NAME: ${MONGODB_REPLICA_SET_NAME:-rs0}
       MONGODB_PORT_NUMBER: ${MONGODB_PORT_NUMBER:-27017}
       MONGODB_INITIAL_PRIMARY_HOST: ${MONGODB_INITIAL_PRIMARY_HOST:-mongodb}
-      MONGODB_INITIAL_PRIMARY_PORT_NUMBER: ${MONGODB_INITIAL_PRIMARY_PORT_NUMBER:-27017}
-      MONGODB_ADVERTISED_HOSTNAME: ${MONGODB_ADVERTISED_HOSTNAME:-mongodb}
-      MONGODB_ENABLE_JOURNAL: ${MONGODB_ENABLE_JOURNAL:-true}
-      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD:-yes}
+    entrypoint: |
+      bash -c
+        "mongod --replSet $$MONGODB_REPLICA_SET_NAME --bind_ip_all &
+          sleep 2;
+          until mongosh --eval \"db.adminCommand('ping')\"; do
+            echo '=====> Waiting for Mongo...';
+            sleep 1;
+          done;
+          echo \"=====> Initiating ReplSet $$MONGODB_REPLICA_SET_NAME at $$MONGODB_INITIAL_PRIMARY_HOST:$$MONGODB_PORT_NUMBER...\";
+          mongosh --eval \"rs.initiate({_id: '$$MONGODB_REPLICA_SET_NAME', members: [{ _id: 0, host: '$$MONGODB_INITIAL_PRIMARY_HOST:$$MONGODB_PORT_NUMBER' }]})\";
+          echo '=====> Initiating ReplSet done...';
+        wait"

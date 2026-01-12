@@ -98,4 +98,6 @@ jobs:
 
       - name: Show logs if failed
         if: failure()
+        env:
+          DEPRECATED_COMPOSE_ACK: "true"
         run: docker compose logs
