@@ -2,6 +2,8 @@ name: build-test
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "**/Dockerfile"
       - "!templates/**"
@@ -98,4 +100,6 @@ jobs:
 
       - name: Show logs if failed
         if: failure()
+        env:
+          DEPRECATED_COMPOSE_ACK: "true"
         run: docker compose logs
