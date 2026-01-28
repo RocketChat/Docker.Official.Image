@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Calculate file differences
         id: diff
@@ -36,7 +36,7 @@ jobs:
           escape_json: false
 
       - name: Generate testing matrix
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         id: generator
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: Get short node version
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         id: short-version
         with:
           result-encoding: string
@@ -72,7 +72,7 @@ jobs:
             return `${version[0]}.${version[1]}`
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build image
         uses: docker/build-push-action@v6
