@@ -1,6 +1,8 @@
 FROM node:22-bookworm-slim
 
 ENV DENO_VERSION=1.43.5
+# Digest for zip version 1.43.5 is not available in the release assets, so we keep it hardcoded as a fallback
+ENV DENO_LEGACY_DIGEST='246bf818932c5e11adb85afaaf3c90e65d5cbe14bcaa8ea14d35fc085869775d'
 
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
@@ -10,10 +12,12 @@ RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   esac \
   && set -ex \
   && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
-  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
-  && echo "246bf818932c5e11adb85afaaf3c90e65d5cbe14bcaa8ea14d35fc085869775d /tmp/deno-x86_64-unknown-linux-gnu.zip" | sha256sum -c - \
-  && unzip /tmp/deno-${ARCH}-unknown-linux-gnu.zip -d /tmp \
-  && rm /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
+  && DENO_ZIP_NAME=deno-${ARCH}-unknown-linux-gnu.zip \
+  && DENO_DIGEST=$( (curl -fs https://dl.deno.land/release/v${DENO_VERSION}/${DENO_ZIP_NAME}.sha256sum || echo ${DENO_LEGACY_DIGEST}) | awk '{print $1}') \
+  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/${DENO_ZIP_NAME} --output /tmp/${DENO_ZIP_NAME} \
+  && echo "${DENO_DIGEST} /tmp/${DENO_ZIP_NAME}" | sha256sum -c - \
+  && unzip /tmp/${DENO_ZIP_NAME} -d /tmp \
+  && rm /tmp/${DENO_ZIP_NAME} \
   && chmod 755 /tmp/deno \
   && mv /tmp/deno /usr/local/bin/deno \
   && apt-mark auto '.*' > /dev/null \
