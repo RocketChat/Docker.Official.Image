@@ -1,0 +1,28 @@
+7.12/Dockerfile
+  s_c61c9a1ce80cf8::t_0fb6030f5ce56d 1-83
+7.13/Dockerfile
+  s_c61c9a1ce80cf8::t_0fb6030f5ce56d 1-83
+7.11/Dockerfile
+  s_c61c9a1ce80cf8::t_0fb6030f5ce56d 1-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5652680f15b0af01233635ddf2025109e2edbff2",
+  "prompts": {},
+  "humans": {
+    "h_4c386397e672f4": {
+      "author": "Diego Sampaio <chinello@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_c61c9a1ce80cf8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d194cccb-c8c7-4c20-9515-786619357729",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Diego Sampaio <chinello@gmail.com>"
+    }
+  }
+}
