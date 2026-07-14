@@ -37,7 +37,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-ENV RC_VERSION=8.3.6
+ENV RC_VERSION=8.3.7
 
 RUN set -eux \
   && apt-get update \
