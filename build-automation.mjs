@@ -95,6 +95,8 @@ export default async function(github) {
 
     const { nodeVersion, denoVersion } = info;
 
+    console.log(`Building ${fullVersion} with Node.js ${nodeVersion} and Deno ${denoVersion}`);
+
     const nodeMajor = nodeVersion.replace(/([0-9]+)\..*/, '$1');
 
     await exec(`cp -r ./templates/node${nodeMajor} ${minor}`, { shell: "bash" });
