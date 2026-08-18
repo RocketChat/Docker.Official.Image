@@ -93,7 +93,9 @@ export default async function(github) {
 
     const { data: info } = await github.request(`https://releases.rocket.chat/${fullVersion}/info`);
 
-    const { nodeVersion } = info;
+    const { nodeVersion, denoVersion } = info;
+
+    console.log(`Building ${fullVersion} with Node.js ${nodeVersion} and Deno ${denoVersion}`);
 
     const nodeMajor = nodeVersion.replace(/([0-9]+)\..*/, '$1');
 
@@ -101,6 +103,7 @@ export default async function(github) {
 
     await exec(`sed -ri 's/^(ENV RC_VERSION=).*/\\1'"${fullVersion}"'/;' ${minor}/Dockerfile`, { shell: "bash" });
     await exec(`sed -ri 's/^(ENV NODE_VERSION=).*/\\1'"${nodeVersion}"'/;' ${minor}/Dockerfile`, { shell: "bash" });
+    await exec(`sed -ri 's/^(ENV DENO_VERSION=).*/\\1'"${denoVersion}"'/;' ${minor}/Dockerfile`, { shell: "bash" });
   }
 
   return newVersions;
