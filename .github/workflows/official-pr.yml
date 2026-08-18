@@ -11,11 +11,14 @@ on:
       - "!templates/**"
       - "stackbrew.js"
 
+permissions: {}
+
 jobs:
   pr:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'rocketchat' && github.event.pull_request.merged_by != ''
     permissions:
+      contents: read
       pull-requests: write
 
     steps:
