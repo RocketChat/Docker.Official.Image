@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim
 
-ENV DENO_VERSION=1.43.5
+ENV DENO_VERSION=2.3.1
 
 # Digest for zip version 1.43.5 is not available in the release assets, so we keep it hardcoded as a fallback
 ENV DENO_LEGACY_DIGEST=246bf818932c5e11adb85afaaf3c90e65d5cbe14bcaa8ea14d35fc085869775d
@@ -42,7 +42,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-ENV RC_VERSION=7.13.9
+ENV RC_VERSION=8.7.1
 
 RUN set -eux \
   && apt-get update \
