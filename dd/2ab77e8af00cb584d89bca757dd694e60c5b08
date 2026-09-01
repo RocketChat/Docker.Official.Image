@@ -1,0 +1,27 @@
+.github/workflows/official-pr.yml
+  s_7baae5de8232b9::t_6c125c11269c99 13-14,20,30-33,41-43,49-62,65,72-74,77,84
+library-diff.mjs
+  s_7baae5de8232b9::t_68a0d0ba67d629 1-154,156-292
+  s_7baae5de8232b9::t_c8ae77cdf43273 155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "dd2ab77e8af00cb584d89bca757dd694e60c5b08",
+  "prompts": {},
+  "humans": {
+    "h_4c386397e672f4": {
+      "author": "Diego Sampaio <chinello@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_7baae5de8232b9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da9424bf-3918-41d1-a338-f8c7269e2413",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Diego Sampaio <chinello@gmail.com>"
+    }
+  }
+}
