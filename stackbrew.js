@@ -56,14 +56,6 @@ for (version of versions) {
     `${fullversion.groups.major}.${fullversion.groups.minor}`,
   ];
 
-  const isLatestMajor = !latestMajor.includes(fullversion.groups.major);
-
-  if (isLatestMajor) {
-    tags.push(fullversion.groups.major);
-
-    latestMajor.push(fullversion.groups.major);
-  }
-
   if (isCurrent) {
     tags.push('latest');
   }
