@@ -6,17 +6,18 @@ on:
       - closed
 
     paths:
-      - ".github/workflows/official-pr.yml"
       - "**/Dockerfile"
       - "!templates/**"
       - "stackbrew.js"
+
+  workflow_dispatch:
 
 permissions: {}
 
 jobs:
   pr:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'rocketchat' && github.event.pull_request.merged_by != ''
+    if: github.repository_owner == 'rocketchat' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true)
     permissions:
       contents: read
       pull-requests: write
@@ -26,8 +27,10 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           path: Docker.Official.Image
-          ref: ${{ github.base_ref }}
-          fetch-depth: 50
+          ref: ${{ github.event.pull_request.base.ref || github.ref }}
+          # stackbrew.js resolves the last commit touching each version directory; a shallow
+          # clone silently yields an empty GitCommit for directories that stopped changing
+          fetch-depth: 0
 
       - name: Checkout the official-images repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -35,32 +38,50 @@ jobs:
           path: official-images
           repository: docker-library/official-images
 
+      - name: Snapshot the published library file
+        run: cp official-images/library/rocket.chat /tmp/rocket.chat.old
+
       - name: Generate Stackbrew for diff
         run: |
           cd Docker.Official.Image
           ./stackbrew.js > ../official-images/library/rocket.chat
 
+      - name: Classify changes
+        id: diff
+        env:
+          SOURCE_PR: ${{ github.event.pull_request.html_url }}
+        run: |
+          node Docker.Official.Image/library-diff.mjs \
+            /tmp/rocket.chat.old \
+            official-images/library/rocket.chat \
+            Docker.Official.Image
+
+      - name: Report no-op
+        if: steps.diff.outputs.changed != 'true'
+        run: echo "library/rocket.chat is unchanged - skipping the official-images PR"
+
       - name: Create PR in official-images
         id: create-pr
+        if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GH_API_TOKEN }}
           push-to-fork: rocketchat/official-images
           path: official-images
           branch: rocketchat
-          commit-message: "Rocket.Chat: ${{ github.event.pull_request.title }}"
-          title: "Rocket.Chat: ${{ github.event.pull_request.title }}"
-          body: |
-            Pull Request: ${{ github.event.pull_request.html_url }}
+          commit-message: ${{ steps.diff.outputs.title }}
+          title: ${{ steps.diff.outputs.title }}
+          body: ${{ steps.diff.outputs.body }}
 
       - name: PR details
+        if: steps.diff.outputs.changed == 'true'
         run: |
           echo "Pull Request Number - ${{ steps.create-pr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.create-pr.outputs.pull-request-url }}"
 
       - name: Create PR comment
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
-        if: ${{ steps.create-pr.outputs.pull-request-url != '' }}
+        if: ${{ github.event_name == 'pull_request_target' && steps.create-pr.outputs.pull-request-url != '' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
