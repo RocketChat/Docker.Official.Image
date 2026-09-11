@@ -160,15 +160,6 @@ const getSupportedVersions = async (github) => {
   return groupedReleases;
 };
 
-const getMinor = (version) => version.split('.').slice(0, 2).join('.');
-
-const compareMinors = (a, b) => {
-  const [aMajor, aMinor] = a.split('.').map(Number);
-  const [bMajor, bMinor] = b.split('.').map(Number);
-
-  return (aMajor - bMajor) || (aMinor - bMinor);
-};
-
 const removeCurrentVersions = async () => {
   const versionsOutput = await getCurrentFolders();
 
@@ -196,23 +187,9 @@ export default async function(github) {
     process.exit(0);
   }
 
-  // keep publishing minors that left the supported list while an older minor
-  // (e.g. an old LTS) is still supported, frozen at their last published patch
-  const oldestSupportedMinor = Array.from(supportedVersions.keys()).sort(compareMinors)[0];
-
-  const versionsToBuild = new Map(supportedVersions);
-
-  for (const version of currentVersions) {
-    const minor = getMinor(version);
-
-    if (!versionsToBuild.has(minor) && compareMinors(minor, oldestSupportedMinor) > 0) {
-      versionsToBuild.set(minor, version.split('.')[2]);
-    }
-  }
-
   await removeCurrentVersions();
 
-  for await (const [minor, patch] of versionsToBuild) {
+  for await (const [minor, patch] of supportedVersions) {
     const fullVersion = `${minor}.${patch}`;
 
     const { data: info } = await github.request(`https://releases.rocket.chat/${fullVersion}/info`);
