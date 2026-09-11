@@ -1,35 +1,39 @@
 FROM node:22-bookworm-slim
 
-ENV DENO_VERSION=1.43.5
+ENV DENO_VERSION=2.3.1
 
-# Digest for zip version 1.43.5 is not available in the release assets, so we keep it hardcoded as a fallback
-ENV DENO_LEGACY_DIGEST=246bf818932c5e11adb85afaaf3c90e65d5cbe14bcaa8ea14d35fc085869775d
-
-RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
-  && case "${dpkgArch##*-}" in \
-  amd64) ARCH='x86_64';; \
-  arm64) ARCH='aarch64';; \
-  *) echo "unsupported Deno architecture"; exit 1 ;; \
-  esac \
-  && set -ex \
-  && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
-  && DENO_ZIP_NAME=deno-${ARCH}-unknown-linux-gnu.zip \
-  && DENO_DIGEST=$( (curl -fs https://dl.deno.land/release/v${DENO_VERSION}/${DENO_ZIP_NAME}.sha256sum || echo ${DENO_LEGACY_DIGEST}) | awk '{print $1}') \
-  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/${DENO_ZIP_NAME} --output /tmp/${DENO_ZIP_NAME} \
-  && echo "${DENO_DIGEST} /tmp/${DENO_ZIP_NAME}" | sha256sum -c - \
-  && unzip /tmp/${DENO_ZIP_NAME} -d /tmp \
-  && rm /tmp/${DENO_ZIP_NAME} \
-  && chmod 755 /tmp/deno \
-  && mv /tmp/deno /usr/local/bin/deno \
-  && apt-mark auto '.*' > /dev/null \
-  && find /usr/local -type f -executable -exec ldd '{}' ';' \
-  | awk '/=>/ { print $(NF-1) }' \
-  | sort -u \
-  | xargs -r dpkg-query --search \
-  | cut -d: -f1 \
-  | sort -u \
-  | xargs -r apt-mark manual \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+RUN set -eux; \
+  dpkgArch="$(dpkg --print-architecture)"; \
+  case "${dpkgArch##*-}" in \
+    'amd64') \
+      denoArch='x86_64'; \
+      denoSha256='b2920265e633215959b09a32b67f46c93362842bbfd27c96e8acc2d24b66f563'; \
+      ;; \
+    'arm64') \
+      denoArch='aarch64'; \
+      denoSha256='3771ede34037694591846166f6211e7a8ab5cd77a1e7143e637d4457e8708dc7'; \
+      ;; \
+    *) echo >&2 "error: unsupported Deno architecture '$dpkgArch'"; exit 1 ;; \
+  esac; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends ca-certificates curl unzip; \
+  rm -rf /var/lib/apt/lists/*; \
+  cd /tmp; \
+  curl -fsSL -o deno.zip "https://dl.deno.land/release/v${DENO_VERSION}/deno-${denoArch}-unknown-linux-gnu.zip"; \
+  echo "$denoSha256 *deno.zip" | sha256sum --strict --check -; \
+  unzip deno.zip -d /tmp; \
+  rm deno.zip; \
+  chmod 755 /tmp/deno; \
+  mv /tmp/deno /usr/local/bin/deno; \
+  apt-mark auto '.*' > /dev/null; \
+  find /usr/local -type f -executable -exec ldd '{}' ';' \
+    | awk '/=>/ { print $(NF-1) }' \
+    | sort -u \
+    | xargs -r dpkg-query --search \
+    | cut -d: -f1 \
+    | sort -u \
+    | xargs -r apt-mark manual; \
+  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
 RUN groupadd -r rocketchat \
   && useradd -r -g rocketchat rocketchat \
@@ -42,7 +46,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-ENV RC_VERSION=7.13.9
+ENV RC_VERSION=8.8.1
 
 RUN set -eux \
   && apt-get update \
