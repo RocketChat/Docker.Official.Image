@@ -1,0 +1,24 @@
+build-automation.mjs
+  s_e0503ccd119944::t_cb55331583ed2f 192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "77ec36e2541c9b7524c90e6fd285aa89a76d41a5",
+  "prompts": {},
+  "humans": {
+    "h_4c386397e672f4": {
+      "author": "Diego Sampaio <chinello@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_e0503ccd119944": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "28dab037-41c3-45f7-83ee-0c7a4a231e21",
+        "model": "claude-opus-5"
+      },
+      "human_author": null
+    }
+  }
+}
