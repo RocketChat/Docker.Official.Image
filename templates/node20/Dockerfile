@@ -2,29 +2,34 @@ FROM node:20-bookworm-slim
 
 ENV DENO_VERSION=1.37.1
 
-RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
-  && case "${dpkgArch##*-}" in \
-  amd64) ARCH='x86_64';; \
-  arm64) ARCH='aarch64';; \
-  *) echo "unsupported Deno architecture"; exit 1 ;; \
-  esac \
-  && set -ex \
-  && apt-get update && apt-get install -y --no-install-recommends ca-certificates curl unzip && rm -rf /var/lib/apt/lists/* \
-  && curl -fsSL https://dl.deno.land/release/v${DENO_VERSION}/deno-${ARCH}-unknown-linux-gnu.zip --output /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
-  && echo "3ebb3c234c4ea5d914eb394af340e08ae0787e95ca8ec2c58b869752760faa00 /tmp/deno-x86_64-unknown-linux-gnu.zip" | sha256sum -c - \
-  && unzip /tmp/deno-${ARCH}-unknown-linux-gnu.zip -d /tmp \
-  && rm /tmp/deno-${ARCH}-unknown-linux-gnu.zip \
-  && chmod 755 /tmp/deno \
-  && mv /tmp/deno /usr/local/bin/deno \
-  && apt-mark auto '.*' > /dev/null \
-  && find /usr/local -type f -executable -exec ldd '{}' ';' \
-  | awk '/=>/ { print $(NF-1) }' \
-  | sort -u \
-  | xargs -r dpkg-query --search \
-  | cut -d: -f1 \
-  | sort -u \
-  | xargs -r apt-mark manual \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+RUN set -eux; \
+  dpkgArch="$(dpkg --print-architecture)"; \
+  case "${dpkgArch##*-}" in \
+    'amd64') \
+      denoArch='x86_64'; \
+      denoSha256='3ebb3c234c4ea5d914eb394af340e08ae0787e95ca8ec2c58b869752760faa00'; \
+      ;; \
+    *) echo >&2 "error: unsupported Deno architecture '$dpkgArch'"; exit 1 ;; \
+  esac; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends ca-certificates curl unzip; \
+  rm -rf /var/lib/apt/lists/*; \
+  cd /tmp; \
+  curl -fsSL -o deno.zip "https://dl.deno.land/release/v${DENO_VERSION}/deno-${denoArch}-unknown-linux-gnu.zip"; \
+  echo "$denoSha256 *deno.zip" | sha256sum --strict --check -; \
+  unzip deno.zip -d /tmp; \
+  rm deno.zip; \
+  chmod 755 /tmp/deno; \
+  mv /tmp/deno /usr/local/bin/deno; \
+  apt-mark auto '.*' > /dev/null; \
+  find /usr/local -type f -executable -exec ldd '{}' ';' \
+    | awk '/=>/ { print $(NF-1) }' \
+    | sort -u \
+    | xargs -r dpkg-query --search \
+    | cut -d: -f1 \
+    | sort -u \
+    | xargs -r apt-mark manual; \
+  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
 
 RUN groupadd -r rocketchat \
   && useradd -r -g rocketchat rocketchat \
