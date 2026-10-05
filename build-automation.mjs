@@ -106,8 +106,12 @@ const updateDockerfile = async (minor, { fullVersion, nodeVersion, denoVersion }
     contents = replaceOnce(contents, /^(ENV NODE_VERSION=).*$/m, `$1${nodeVersion}`, 'ENV NODE_VERSION line');
   }
 
-  // the node14 template has no Deno step
+  // the node14 and node24 templates have no Deno step
   if (/^ENV DENO_VERSION=/m.test(contents)) {
+    if (denoVersion === undefined) {
+      throw new Error(`${fullVersion}: ./${file} installs Deno, but the release info has no denoVersion`);
+    }
+
     contents = replaceOnce(contents, /^(ENV DENO_VERSION=).*$/m, `$1${denoVersion}`, 'ENV DENO_VERSION line');
 
     for (const [dpkgArch, denoArch] of Object.entries(DENO_ARCHES)) {
@@ -196,14 +200,21 @@ export default async function(github) {
 
     const { nodeVersion, denoVersion } = info;
 
+    const versions = [['Rocket.Chat', fullVersion], ['Node.js', nodeVersion]];
+
+    // 8.9.0 dropped Deno, so newer releases omit denoVersion
+    if (denoVersion !== undefined) {
+      versions.push(['Deno', denoVersion]);
+    }
+
     // these values come off the network and land in a shell command and in replacement strings
-    for (const [label, value] of [['Rocket.Chat', fullVersion], ['Node.js', nodeVersion], ['Deno', denoVersion]]) {
+    for (const [label, value] of versions) {
       if (!SEMVER.test(value)) {
         throw new Error(`${fullVersion}: unexpected ${label} version ${JSON.stringify(value)}`);
       }
     }
 
-    console.log(`Building ${fullVersion} with Node.js ${nodeVersion} and Deno ${denoVersion}`);
+    console.log(`Building ${fullVersion} with ${versions.slice(1).map(([label, value]) => `${label} ${value}`).join(' and ')}`);
 
     const nodeMajor = nodeVersion.replace(/([0-9]+)\..*/, '$1');
 
