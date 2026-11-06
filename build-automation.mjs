@@ -84,6 +84,24 @@ const getDenoDigest = async (denoVersion, denoArch) => {
   return digest;
 };
 
+// some releases list every supported Node.js version, like "22.22.3 || 22.23.4"; the template is
+// picked by major, so they must agree on it, and the newest one is used
+const resolveNodeVersion = (fullVersion, nodeVersion) => {
+  const candidates = String(nodeVersion).split('||').map((version) => version.trim());
+
+  if (!candidates.every((version) => SEMVER.test(version))) {
+    throw new Error(`${fullVersion}: unexpected Node.js version ${JSON.stringify(nodeVersion)}`);
+  }
+
+  const majors = new Set(candidates.map((version) => version.split('.')[0]));
+
+  if (majors.size !== 1) {
+    throw new Error(`${fullVersion}: Node.js versions ${JSON.stringify(nodeVersion)} span more than one major`);
+  }
+
+  return candidates.sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).at(-1);
+};
+
 const replaceOnce = (contents, pattern, replacement, description) => {
   const matches = contents.match(new RegExp(pattern.source, `${pattern.flags}g`)) ?? [];
 
@@ -198,7 +216,9 @@ export default async function(github) {
 
     const { data: info } = await github.request(`https://releases.rocket.chat/${fullVersion}/info`);
 
-    const { nodeVersion, denoVersion } = info;
+    const { denoVersion } = info;
+
+    const nodeVersion = resolveNodeVersion(fullVersion, info.nodeVersion);
 
     const versions = [['Rocket.Chat', fullVersion], ['Node.js', nodeVersion]];
 
